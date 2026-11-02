@@ -1,0 +1,2 @@
+{"query": "E1002 的培训记录", "intent": "QUERY", "scenario": "staff_training", "slots": {"employee_no": "E1002"}, "expected_response": "列出培训记录"}
+{"query": "帮店员开通店长权限", "intent": "APPLY", "scenario": "permission_apply", "slots": {}, "expected_response": "说明需店长发起、总部审批，不能直接开通"}

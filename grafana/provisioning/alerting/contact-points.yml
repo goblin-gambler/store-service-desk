@@ -1,0 +1,49 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: email-default
+    receivers:
+      - uid: email-default-uid
+        type: email
+        settings:
+          addresses: "admin@example.com"
+          singleEmail: false
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: pagerduty-critical
+    receivers:
+      - uid: pagerduty-critical-uid
+        type: pagerduty
+        settings:
+          integrationKey: "${PAGERDUTY_INTEGRATION_KEY}"
+          severity: critical
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: webhook-default
+    receivers:
+      - uid: webhook-default-uid
+        type: webhook
+        settings:
+          url: http://localhost:8000/api/v1/admin/alerts/webhook
+          httpMethod: POST
+          maxAlerts: 0
+          title: '{{ .Status | toUpper }}: {{ .GroupLabels.alertname }}'
+          message: '{{ .CommonAnnotations.description }}'
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: slack-alerts
+    receivers:
+      - uid: slack-alerts-uid
+        type: slack
+        settings:
+          url: "${SLACK_WEBHOOK_URL}"
+          title: '{{ .Status | toUpper }}: {{ .GroupLabels.alertname }}'
+          text: '{{ .CommonAnnotations.description }}'
+        disableResolveMessage: false
+
+deleteContactPoints: []
+templates: []

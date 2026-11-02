@@ -1,0 +1,1 @@
+{"query": "昨天日结差 50 块", "intent": "QUERY", "scenario": "settlement_diff", "slots": {"store_code": "ST1001", "settle_date": "2026-10-26"}, "expected_response": "给出应结、实结、差异金额和记录中的差异原因"}

@@ -1,0 +1,25 @@
+{"query": "张江店今天营业吗", "expected_intent": "STORE", "expected_slots": {}, "expected_answer_fragment": "营业", "expected_audit_level": "auto", "dimension": "store_query"}
+{"query": "ST1002 有哪些设备离线", "expected_intent": "STORE", "expected_slots": {"store_code": "ST1002"}, "expected_answer_fragment": "设备", "expected_audit_level": "auto", "dimension": "device_query"}
+{"query": "制冰机坏了，帮我报修", "expected_intent": "STORE", "expected_slots": {}, "expected_answer_fragment": "报修", "expected_audit_level": "auto", "dimension": "repair_request"}
+{"query": "上海张江店的地址在哪", "expected_intent": "STORE", "expected_slots": {"store_code": "ST1001"}, "expected_answer_fragment": "地址", "expected_audit_level": "auto", "dimension": "store_query"}
+{"query": "报损 350 元需要谁审批", "expected_intent": "POLICY", "expected_slots": {}, "expected_answer_fragment": "店长", "expected_audit_level": "auto", "dimension": "loss_policy"}
+{"query": "报损金额多少需要区域督导审批", "expected_intent": "POLICY", "expected_slots": {}, "expected_answer_fragment": "2000", "expected_audit_level": "auto", "dimension": "loss_policy"}
+{"query": "报损单怎么提交", "expected_intent": "POLICY", "expected_slots": {}, "expected_answer_fragment": "报损", "expected_audit_level": "auto", "dimension": "loss_policy"}
+{"query": "请 3 天假找谁批", "expected_intent": "POLICY", "expected_slots": {}, "expected_answer_fragment": "店长", "expected_audit_level": "auto", "dimension": "leave_policy"}
+{"query": "单月加班超过 36 小时怎么办", "expected_intent": "POLICY", "expected_slots": {}, "expected_answer_fragment": "督导", "expected_audit_level": "auto", "dimension": "overtime_policy"}
+{"query": "打碎了一箱牛奶，报损 150 元", "expected_intent": "LOSS", "expected_slots": {}, "expected_answer_fragment": "报损单", "expected_audit_level": "auto", "dimension": "loss_auto"}
+{"query": "收银机进水报废，报损 2500 元", "expected_intent": "LOSS", "expected_slots": {}, "expected_answer_fragment": "区域督导", "expected_audit_level": "manual", "dimension": "loss_regional"}
+{"query": "我的报损审批到哪了", "expected_intent": "LOSS", "expected_slots": {}, "expected_answer_fragment": "报损单", "expected_audit_level": "auto", "dimension": "loss_query"}
+{"query": "这周配送单到哪了", "expected_intent": "SUPPLY", "expected_slots": {}, "expected_answer_fragment": "配送", "expected_audit_level": "auto", "dimension": "supply_query"}
+{"query": "今天到货少了两箱酸奶", "expected_intent": "SUPPLY", "expected_slots": {}, "expected_answer_fragment": "差异", "expected_audit_level": "auto", "dimension": "supply_diff"}
+{"query": "今天日结差 600 块怎么办", "expected_intent": "SETTLEMENT", "expected_slots": {}, "expected_answer_fragment": "督导", "expected_audit_level": "auto", "dimension": "settlement_diff"}
+{"query": "昨天日结金额是多少", "expected_intent": "SETTLEMENT", "expected_slots": {}, "expected_answer_fragment": "日结", "expected_audit_level": "auto", "dimension": "settlement_query"}
+{"query": "帮我申领 200 个纸杯", "expected_intent": "MATERIAL", "expected_slots": {}, "expected_answer_fragment": "纸杯", "expected_audit_level": "auto", "dimension": "material_apply"}
+{"query": "物料额度超了还能申领吗", "expected_intent": "MATERIAL", "expected_slots": {}, "expected_answer_fragment": "额度", "expected_audit_level": "auto", "dimension": "material_quota"}
+{"query": "鲜奶拿铁的配方是什么", "expected_intent": "PRODUCT", "expected_slots": {}, "expected_answer_fragment": "配方", "expected_audit_level": "auto", "dimension": "product_recipe"}
+{"query": "这款三明治有过敏原吗", "expected_intent": "PRODUCT", "expected_slots": {}, "expected_answer_fragment": "过敏原", "expected_audit_level": "auto", "dimension": "product_allergen"}
+{"query": "有顾客说吃了我们的蛋糕拉肚子", "expected_intent": "COMPLAINT", "expected_slots": {}, "expected_answer_fragment": "食品安全", "expected_audit_level": "manual", "dimension": "food_safety"}
+{"query": "我要投诉门店服务态度", "expected_intent": "COMPLAINT", "expected_slots": {}, "expected_answer_fragment": "投诉", "expected_audit_level": "auto", "dimension": "complaint"}
+{"query": "我的排班在哪看", "expected_intent": "STAFF", "expected_slots": {}, "expected_answer_fragment": "排班", "expected_audit_level": "auto", "dimension": "staff_schedule"}
+{"query": "我们店店长电话多少", "expected_intent": "STAFF", "expected_slots": {}, "expected_answer_fragment": "店长", "expected_audit_level": "auto", "dimension": "staff_contact"}
+{"query": "这个怎么办", "expected_intent": "OTHER", "expected_slots": {}, "expected_answer_fragment": "", "expected_audit_level": "auto", "dimension": "ambiguous_intent"}

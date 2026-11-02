@@ -1,0 +1,2 @@
+{"query": "张江店打翻 3 箱鲜奶，损失 350 元", "primary_intent": "LOSS", "secondary_intent": "APPLY", "slots": {"store_code": "ST1001", "amount": 350}, "expected_response": "路由到 store_agent 处理报损"}
+{"query": "今天补货到哪了", "primary_intent": "SUPPLY", "secondary_intent": "QUERY", "slots": {}, "expected_response": "路由到 supply_agent"}

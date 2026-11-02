@@ -1,0 +1,248 @@
+{
+  "stores": [
+    {
+      "store_code": "ST1001",
+      "name": "上海张江店",
+      "region": "华东一区",
+      "city": "上海",
+      "address": "浦东新区张江路 88 号 1 层",
+      "manager": "王敏",
+      "manager_phone": "138****2011",
+      "level": "A",
+      "status": "营业中",
+      "opening_hours": "07:00-22:00"
+    },
+    {
+      "store_code": "ST1002",
+      "name": "北京中关村店",
+      "region": "华北一区",
+      "city": "北京",
+      "address": "海淀区中关村大街 15 号",
+      "manager": "李强",
+      "manager_phone": "139****7788",
+      "level": "A",
+      "status": "营业中",
+      "opening_hours": "07:30-22:00"
+    },
+    {
+      "store_code": "ST1003",
+      "name": "广州天河店",
+      "region": "华南一区",
+      "city": "广州",
+      "address": "天河区天河路 208 号",
+      "manager": "陈晓",
+      "manager_phone": "137****6620",
+      "level": "B",
+      "status": "营业中",
+      "opening_hours": "08:00-23:00"
+    },
+    {
+      "store_code": "ST1004",
+      "name": "深圳福田店",
+      "region": "华南二区",
+      "city": "深圳",
+      "address": "福田区福华三路 118 号",
+      "manager": "周敏",
+      "manager_phone": "136****3344",
+      "level": "B",
+      "status": "装修停业",
+      "opening_hours": "暂停营业"
+    }
+  ],
+  "devices": [
+    {
+      "store_code": "ST1001",
+      "device_code": "POS-01",
+      "device_type": "POS 收银机",
+      "model": "商米 T2",
+      "status": "OFFLINE",
+      "last_report": "2026-10-27 09:12",
+      "note": "开机后无法连接支付网关"
+    },
+    {
+      "store_code": "ST1001",
+      "device_code": "ICE-01",
+      "device_type": "制冰机",
+      "model": "星崎 IM-65",
+      "status": "ALARM",
+      "last_report": "2026-10-27 08:40",
+      "note": "E03 高温报警，出冰量不足"
+    },
+    {
+      "store_code": "ST1001",
+      "device_code": "PRT-01",
+      "device_type": "标签打印机",
+      "model": "得力 DL-888",
+      "status": "ONLINE",
+      "last_report": "2026-10-27 10:05",
+      "note": "正常"
+    },
+    {
+      "store_code": "ST1002",
+      "device_code": "POS-01",
+      "device_type": "POS 收银机",
+      "model": "商米 T2",
+      "status": "ONLINE",
+      "last_report": "2026-10-27 10:01",
+      "note": "正常"
+    },
+    {
+      "store_code": "ST1002",
+      "device_code": "FRIDGE-02",
+      "device_type": "冷藏柜",
+      "model": "海尔 SC-340",
+      "status": "MAINTENANCE",
+      "last_report": "2026-10-26 18:30",
+      "note": "已报修，等待工程师上门"
+    },
+    {
+      "store_code": "ST1003",
+      "device_code": "POS-01",
+      "device_type": "POS 收银机",
+      "model": "商米 T2",
+      "status": "ONLINE",
+      "last_report": "2026-10-27 09:58",
+      "note": "正常"
+    },
+    {
+      "store_code": "ST1003",
+      "device_code": "ICE-01",
+      "device_type": "制冰机",
+      "model": "星崎 IM-65",
+      "status": "ONLINE",
+      "last_report": "2026-10-27 09:30",
+      "note": "正常"
+    },
+    {
+      "store_code": "ST1004",
+      "device_code": "POS-01",
+      "device_type": "POS 收银机",
+      "model": "商米 T2",
+      "status": "OFFLINE",
+      "last_report": "2026-10-20 21:00",
+      "note": "门店装修停业，设备断电"
+    }
+  ],
+  "deliveries": [
+    {
+      "store_code": "ST1001",
+      "delivery_sn": "DL20261027001",
+      "type": "冷藏补货",
+      "status": "运输中",
+      "items": "鲜奶 40 箱、奶油 12 箱",
+      "carrier": "冷链专线-沪A03",
+      "latest_update": "已到达张江中转仓，预计 11:30 送达",
+      "eta": "2026-10-27 11:30",
+      "temperature": "2.8℃"
+    },
+    {
+      "store_code": "ST1001",
+      "delivery_sn": "DL20261026008",
+      "type": "常温物料",
+      "status": "已签收",
+      "items": "纸杯 20 箱、吸管 10 箱",
+      "carrier": "城配-沪B11",
+      "latest_update": "2026-10-26 15:20 店长王敏签收",
+      "eta": "2026-10-26 15:00",
+      "temperature": "-"
+    },
+    {
+      "store_code": "ST1002",
+      "delivery_sn": "DL20261027003",
+      "type": "冷链补货",
+      "status": "异常",
+      "items": "鲜果 8 箱",
+      "carrier": "冷链专线-京C07",
+      "latest_update": "车厢温度 9.6℃ 超过阈值，已通知品控复核",
+      "eta": "2026-10-27 13:00",
+      "temperature": "9.6℃"
+    },
+    {
+      "store_code": "ST1003",
+      "delivery_sn": "DL20261027005",
+      "type": "常温物料",
+      "status": "待发车",
+      "items": "门店物料包 6 箱",
+      "carrier": "城配-穗D02",
+      "latest_update": "仓库已拣货完成，16:00 发车",
+      "eta": "2026-10-27 18:30",
+      "temperature": "-"
+    }
+  ],
+  "settlements": [
+    {
+      "store_code": "ST1001",
+      "settle_date": "2026-10-26",
+      "expected_amount": 18620.5,
+      "actual_amount": 18570.5,
+      "diff_amount": -50.0,
+      "diff_reason": "POS 离线期间现金单未入账",
+      "status": "待核对"
+    },
+    {
+      "store_code": "ST1001",
+      "settle_date": "2026-10-25",
+      "expected_amount": 17330.0,
+      "actual_amount": 17330.0,
+      "diff_amount": 0.0,
+      "diff_reason": "",
+      "status": "已平账"
+    },
+    {
+      "store_code": "ST1002",
+      "settle_date": "2026-10-26",
+      "expected_amount": 21105.0,
+      "actual_amount": 21105.0,
+      "diff_amount": 0.0,
+      "diff_reason": "",
+      "status": "已平账"
+    },
+    {
+      "store_code": "ST1003",
+      "settle_date": "2026-10-26",
+      "expected_amount": 15280.0,
+      "actual_amount": 15330.0,
+      "diff_amount": 50.0,
+      "diff_reason": "团购券核销重复入账",
+      "status": "待核对"
+    }
+  ],
+  "staff": [
+    {
+      "employee_no": "E1001",
+      "name": "王敏",
+      "store_code": "ST1001",
+      "role": "店长",
+      "permissions": ["报损审批", "排班管理", "物料申领", "日结查看"],
+      "training": ["食品安全 2026", "门店运营进阶"],
+      "status": "在职"
+    },
+    {
+      "employee_no": "E1002",
+      "name": "赵磊",
+      "store_code": "ST1001",
+      "role": "店员",
+      "permissions": ["物料申领", "报损提交"],
+      "training": ["食品安全 2026"],
+      "status": "在职"
+    },
+    {
+      "employee_no": "E1003",
+      "name": "李强",
+      "store_code": "ST1002",
+      "role": "店长",
+      "permissions": ["报损审批", "排班管理", "物料申领", "日结查看"],
+      "training": ["食品安全 2026", "新店长训练营"],
+      "status": "在职"
+    },
+    {
+      "employee_no": "E1004",
+      "name": "陈晓",
+      "store_code": "ST1003",
+      "role": "店长",
+      "permissions": ["报损审批", "排班管理", "物料申领", "日结查看"],
+      "training": ["食品安全 2026"],
+      "status": "在职"
+    }
+  ]
+}

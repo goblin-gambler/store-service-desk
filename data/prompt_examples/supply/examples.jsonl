@@ -1,0 +1,2 @@
+{"query": "ST1001 今天的补货到哪了", "intent": "QUERY", "scenario": "delivery_status", "slots": {"store_code": "ST1001"}, "expected_response": "列出补货单号、状态、温度和预计到达"}
+{"query": "冷链温度异常的那批货能收吗", "intent": "QUERY", "scenario": "cold_chain_alert", "slots": {"store_code": "ST1002"}, "expected_response": "说明异常温度，提示等待品控复核，不替用户做收货决定"}

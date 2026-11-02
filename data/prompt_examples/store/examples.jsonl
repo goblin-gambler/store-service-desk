@@ -1,0 +1,2 @@
+{"query": "ST1001 的设备都正常吗", "intent": "QUERY", "scenario": "device_status", "slots": {"store_code": "ST1001"}, "expected_response": "逐台列出设备状态并标出异常设备"}
+{"query": "张江店制冰机报警了，帮我报修", "intent": "APPLY", "scenario": "repair_create", "slots": {"store_code": "ST1001", "device_type": "制冰机"}, "expected_response": "创建报修工单，给出工单号、处理人和上门时间"}

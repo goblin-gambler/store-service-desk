@@ -1,0 +1,1 @@
+{"query": "门店报损制度是怎么规定的", "intent": "CONSULT", "scenario": "policy_loss", "slots": {"policy_topic": "报损制度"}, "expected_response": "引用门店运营手册中的报损条款并标注来源"}

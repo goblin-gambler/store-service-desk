@@ -1,0 +1,1 @@
+{"query": "顾客说奶茶里喝到异物", "intent": "COMPLAINT", "scenario": "food_safety", "slots": {}, "expected_response": "按食品安全最高优先级建单，提示保留样品与凭证"}

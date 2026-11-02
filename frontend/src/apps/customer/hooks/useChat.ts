@@ -1,0 +1,231 @@
+import { useState, useCallback } from 'react'
+import type { Message, MessageMetadata } from '@/types'
+import { apiFetch } from '@/lib/api'
+
+interface FeedbackRequest {
+  thread_id: string
+  message_index: number
+  sentiment: 'up' | 'down'
+  comment?: string
+  category?: string
+  agent_type?: string
+  confidence_score?: number
+}
+
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome',
+  role: 'assistant',
+  content:
+    '您好！我是门店服务台助手。我可以帮您：\n• 查询门店与设备状态、提交报修\n• 提交报损、跟踪审批进度\n• 查询补货配送、日结对账\n• 申领物料、查阅门店制度\n\n请问有什么可以帮您的？',
+  timestamp: new Date(),
+}
+
+interface StreamToken {
+  token?: string
+  type?: string
+}
+
+interface StreamMetadata {
+  type: 'metadata'
+  confidence_score?: number
+  confidence_signals?: Record<string, unknown>
+  needs_human_transfer?: boolean
+  transfer_reason?: string
+  audit_level?: string
+  current_agent?: string
+  trace_id?: string
+}
+
+interface UseChatReturn {
+  messages: Message[]
+  isLoading: boolean
+  sendMessage: (content: string, threadId: string) => Promise<void>
+  submitFeedback: (
+    messageId: string,
+    sentiment: 'up' | 'down',
+    threadId: string,
+    messageIndex: number,
+    category?: string,
+    comment?: string
+  ) => Promise<void>
+  resetMessages: () => void
+}
+
+export function useChat(): UseChatReturn {
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE])
+  const [isLoading, setIsLoading] = useState(false)
+
+  const sendMessage = useCallback(
+    async (content: string, threadId: string) => {
+      if (!content.trim() || isLoading) return
+
+      const userMessage: Message = {
+        id: `user_${Date.now()}`,
+        role: 'user',
+        content,
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, userMessage])
+      setIsLoading(true)
+
+      const assistantMessageId = `assistant_${Date.now()}`
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMessageId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+        },
+      ])
+
+      try {
+        const res = await apiFetch(`/chat`, {
+          method: 'POST',
+          body: JSON.stringify({
+            question: userMessage.content,
+            thread_id: threadId,
+          }),
+        })
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+
+        const reader = res.body?.getReader()
+        const decoder = new TextDecoder()
+        let fullContent = ''
+        let buffer = ''
+        let metadata: MessageMetadata | undefined
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6)
+
+                if (data === '[DONE]') {
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? { ...msg, isStreaming: false, metadata }
+                        : msg
+                    )
+                  )
+                  setIsLoading(false)
+                  continue
+                }
+
+                try {
+                  const parsed = JSON.parse(data) as StreamToken | StreamMetadata
+                  if ('token' in parsed && parsed.token) {
+                    fullContent += parsed.token
+                    setMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === assistantMessageId ? { ...msg, content: fullContent } : msg
+                      )
+                    )
+                  } else if ('type' in parsed && parsed.type === 'metadata') {
+                    const meta = parsed as StreamMetadata
+                    metadata = {
+                      ...metadata,
+                      confidence_score: meta.confidence_score ?? metadata?.confidence_score,
+                      confidence_signals: meta.confidence_signals ?? metadata?.confidence_signals,
+                      needs_human_transfer: meta.needs_human_transfer ?? metadata?.needs_human_transfer,
+                      transfer_reason: meta.transfer_reason ?? metadata?.transfer_reason,
+                      audit_level: meta.audit_level ?? metadata?.audit_level,
+                      current_agent: meta.current_agent ?? metadata?.current_agent,
+                      trace_id: meta.trace_id ?? metadata?.trace_id,
+                    }
+                  }
+                } catch {
+                  // 忽略解析错误
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? {
+                  ...msg,
+                  content: '抱歉，服务暂时不可用，请稍后重试。',
+                  isStreaming: false,
+                }
+              : msg
+          )
+        )
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [isLoading]
+  )
+
+  const resetMessages = useCallback(() => {
+    setMessages([WELCOME_MESSAGE])
+  }, [])
+
+  const submitFeedback = useCallback(
+    async (
+      messageId: string,
+      sentiment: 'up' | 'down',
+      threadId: string,
+      messageIndex: number,
+      category?: string,
+      comment?: string
+    ) => {
+      try {
+        const msg = messages.find((m) => m.id === messageId)
+        const feedbackData: FeedbackRequest = {
+          thread_id: threadId,
+          message_index: messageIndex,
+          sentiment: sentiment,
+          ...(category && { category }),
+          ...(comment && { comment }),
+          ...(msg?.metadata?.current_agent && { agent_type: msg.metadata.current_agent }),
+          ...(msg?.metadata?.confidence_score !== undefined && {
+            confidence_score: msg.metadata.confidence_score,
+          }),
+        }
+
+        const res = await apiFetch(`/feedback`, {
+          method: 'POST',
+          body: JSON.stringify(feedbackData),
+        })
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageId ? { ...msg, feedbackSentiment: sentiment } : msg
+          )
+        )
+      } catch (error) {
+        console.error('Failed to submit feedback:', error)
+      }
+    },
+    [messages]
+  )
+
+  return {
+    messages,
+    isLoading,
+    sendMessage,
+    submitFeedback,
+    resetMessages,
+  }
+}

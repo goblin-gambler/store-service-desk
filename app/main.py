@@ -1,0 +1,407 @@
+# app/main.py
+import asyncio
+import contextlib
+import logging
+import os
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
+from opentelemetry import trace
+from prometheus_client import make_asgi_app
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+
+from app.api.v1.admin import router as admin_router
+from app.api.v1.auth import router as auth_router
+from app.api.v1.chat import router as chat_router
+from app.api.v1.status import router as status_router
+from app.api.v1.web_vitals import router as web_vitals_router
+from app.api.v1.websocket import router as websocket_router
+from app.core.config import settings
+from app.core.limiter import limiter
+from app.core.logging import generate_correlation_id, set_correlation_id
+from app.core.structured_logging import configure_logging
+from app.observability.otel_setup import instrument_fastapi, setup_otel_tracing
+from app.websocket.manager import get_manager
+from app.websocket.redis_bridge import RedisBroadcastBridge
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    _setup_logging()
+    _setup_langsmith_tracing()
+    logger.info(" Starting Store Service Desk (连锁零售门店服务台) ...")
+
+    setup_otel_tracing()
+    instrument_fastapi(app)
+
+    if "*" in settings.CORS_ORIGINS:
+        raise RuntimeError(
+            "CORS allow_origins=['*'] combined with allow_credentials=True is not allowed. "
+            "Please restrict CORS_ORIGINS to specific domains."
+        )
+
+    from app.agents.complaint import ComplaintAgent
+    from app.agents.evaluator import ConfidenceEvaluator
+    from app.agents.material import MaterialAgent
+    from app.agents.policy import PolicyAgent
+    from app.agents.product import ProductAgent
+    from app.agents.router import IntentRouterAgent
+    from app.agents.settlement import SettlementAgent
+    from app.agents.staff import StaffAgent
+    from app.agents.store import StoreAgent
+    from app.agents.supply import SupplyAgent
+    from app.agents.supervisor import SupervisorAgent
+    from app.core.cache import CacheManager
+    from app.core.database import async_engine
+    from app.core.llm_factory import create_openai_llm
+    from app.core.redis import create_redis_client
+    from app.graph.checkpointer import OptimizedRedisCheckpoint
+    from app.graph.workflow import compile_app_graph
+    from app.intent.service import IntentRecognitionService
+    from app.memory.structured_manager import StructuredMemoryManager
+    from app.memory.vector_manager import VectorMemoryManager
+    from app.retrieval import create_retriever
+    from app.services.loss_service import LossService
+    from app.tools import (
+        ComplaintTool,
+        MaterialTool,
+        ProductTool,
+        SettlementTool,
+        StaffTool,
+        StoreTool,
+        SupplyTool,
+    )
+    from app.tools.registry import ToolRegistry
+
+    try:
+        redis_client = create_redis_client()
+        checkpointer = OptimizedRedisCheckpoint(redis_client=redis_client)
+        await checkpointer.setup()
+
+        llm = create_openai_llm()
+        eval_llm = create_openai_llm(model=settings.CONFIDENCE.EVALUATION_MODEL)
+        cache_manager = CacheManager(redis_client)
+        intent_service = IntentRecognitionService(
+            llm=llm, redis_client=redis_client, cache_manager=cache_manager
+        )
+        structured_manager = StructuredMemoryManager(cache_manager=cache_manager)
+        router_agent = IntentRouterAgent(
+            intent_service=intent_service, llm=llm, structured_manager=structured_manager
+        )
+        retriever = create_retriever(
+            llm=llm, redis_client=redis_client, cache_manager=cache_manager
+        )
+
+        app.state.manager = get_manager()
+
+        bridge = RedisBroadcastBridge(settings.REDIS_URL)
+
+        async def _redis_listener() -> None:
+            try:
+                async for payload in bridge.subscribe("admins"):
+                    if payload.get("room") == "admins":
+                        await get_manager().broadcast_to_admins(payload.get("data", {}))
+            except asyncio.CancelledError:
+                raise
+            except (ConnectionError, OSError, RuntimeError):
+                logger.exception("Redis broadcast listener error")
+
+        listener_task = asyncio.create_task(_redis_listener())
+
+        tool_registry = ToolRegistry()
+        tool_registry.register(StoreTool())
+        tool_registry.register(SupplyTool())
+        tool_registry.register(SettlementTool())
+        tool_registry.register(MaterialTool())
+        tool_registry.register(StaffTool())
+        tool_registry.register(ProductTool(rewriter=retriever.rewriter))
+        tool_registry.register(ComplaintTool())
+        app.state.tool_registry = tool_registry
+        policy_agent = PolicyAgent(retriever=retriever, llm=llm)
+        store_agent = StoreAgent(
+            loss_service=LossService(), tool_registry=tool_registry, llm=llm
+        )
+        supply_agent = SupplyAgent(tool_registry=tool_registry, llm=llm)
+        settlement_agent = SettlementAgent(tool_registry=tool_registry, llm=llm)
+        material_agent = MaterialAgent(tool_registry=tool_registry, llm=llm)
+        staff_agent = StaffAgent(tool_registry=tool_registry, llm=llm)
+        product_agent = ProductAgent(tool_registry=tool_registry, llm=llm)
+        complaint_agent = ComplaintAgent(llm=llm)
+        supervisor_agent = SupervisorAgent(llm=llm)
+        evaluator = ConfidenceEvaluator(llm=eval_llm)
+        vector_manager = VectorMemoryManager(cache_manager=cache_manager)
+
+        app.state.intent_service = intent_service
+        app.state.llm = llm
+        app.state.vector_manager = vector_manager
+        app.state.redis_client = redis_client
+        app.state.cache_manager = cache_manager
+
+        from app.services.alert_service import AlertService
+
+        app.state.alert_service = AlertService(redis=redis_client)
+        logger.info("AlertService initialized")
+
+        app.state.app_graph = await compile_app_graph(
+            router_agent=router_agent,
+            policy_agent=policy_agent,
+            store_agent=store_agent,
+            supply_agent=supply_agent,
+            settlement_agent=settlement_agent,
+            material_agent=material_agent,
+            staff_agent=staff_agent,
+            evaluator=evaluator,
+            checkpointer=checkpointer,
+            supervisor_agent=supervisor_agent,
+            product_agent=product_agent,
+            complaint_agent=complaint_agent,
+            llm=llm,
+            structured_manager=structured_manager,
+            vector_manager=vector_manager,
+        )
+        logger.info(" Infrastructure is ready.")
+
+        try:
+            logger.info("Warming up LLM...")
+            await llm.ainvoke([{"role": "user", "content": "Hello"}])
+            logger.info("LLM warm-up complete.")
+        except (TimeoutError, OSError):
+            logger.warning("LLM warm-up failed, will warm up on first request")
+
+        yield
+    finally:
+        logger.info("Shutting down...")
+        with contextlib.suppress(NameError):
+            if listener_task is not None:
+                listener_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await listener_task
+        with contextlib.suppress(NameError):
+            if bridge is not None:
+                await bridge.close()
+        with contextlib.suppress(NameError):
+            if redis_client is not None:
+                await redis_client.close()
+        with contextlib.suppress(NameError):
+            if retriever is not None:
+                await retriever.qdrant_client.aclose()
+        with contextlib.suppress(NameError):
+            if vector_manager is not None:
+                await vector_manager.aclose()
+        await async_engine.dispose()
+
+
+def _setup_langsmith_tracing() -> None:
+    """Configure LangSmith tracing based on application settings.
+
+    If LANGSMITH_API_KEY is configured, automatically set the environment
+    variables required for LangChain/LangSmith automatic tracing. This ensures
+    all LLM calls (via LangChain) are traced without requiring code changes
+    at each call site.
+    """
+    if not settings.LANGSMITH_API_KEY:
+        return
+
+    # Set required environment variables for LangChain automatic tracing
+    os.environ.setdefault("LANGCHAIN_TRACING_V2", "true")
+    os.environ.setdefault("LANGCHAIN_API_KEY", settings.LANGSMITH_API_KEY.get_secret_value())
+    os.environ.setdefault("LANGCHAIN_PROJECT", settings.LANGSMITH_PROJECT)
+
+    # Log tracing status (avoid logging the full API key)
+    secret_key = settings.LANGSMITH_API_KEY.get_secret_value()
+    masked_key = f"{secret_key[:8]}..." if len(secret_key) > 8 else "***"
+    logger.info(
+        "LangSmith tracing enabled (project=%s, api_key=%s)",
+        settings.LANGSMITH_PROJECT,
+        masked_key,
+    )
+
+
+def _setup_logging() -> None:
+    configure_logging(log_format=settings.LOG_FORMAT)
+
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version="4.1.0",
+    description="全栈·沉浸式人机协作系统 (The Immersive System) - v4.1",
+    docs_url="/docs" if settings.ENABLE_OPENAPI_DOCS else None,
+    redoc_url="/redoc" if settings.ENABLE_OPENAPI_DOCS else None,
+    openapi_url="/openapi.json" if settings.ENABLE_OPENAPI_DOCS else None,
+    lifespan=lifespan,
+)
+app.state.limiter = limiter
+
+
+def _rate_limit_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, RateLimitExceeded):
+        raise TypeError(f"Unexpected exception type: {type(exc).__name__}")
+    return _rate_limit_exceeded_handler(request, exc)
+
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+
+
+@app.middleware("http")
+async def correlation_id_middleware(request: Request, call_next):
+    cid = request.headers.get("x-correlation-id") or generate_correlation_id()
+    set_correlation_id(cid)
+    response = await call_next(request)
+    response.headers["X-Correlation-ID"] = cid
+    return response
+
+
+# 1. 配置跨域
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# 2. OpenTelemetry trace-id response middleware (after CORS)
+@app.middleware("http")
+async def trace_id_middleware(request: Request, call_next):
+    response = await call_next(request)
+    span = trace.get_current_span()
+    span_context = span.get_span_context()
+    if span_context.is_valid:
+        trace_id = format(span_context.trace_id, "032x")
+        response.headers["X-Trace-ID"] = trace_id
+    return response
+
+
+# 3. Rate limiting middleware
+app.add_middleware(SlowAPIMiddleware)
+
+# 3. 注册路由
+app.include_router(auth_router, prefix=settings.API_V1_STR, tags=["Auth"])  # v4.0 新增
+app.include_router(chat_router, prefix=settings.API_V1_STR, tags=["Chat"])
+app.include_router(status_router, prefix=settings.API_V1_STR, tags=["Status"])
+app.include_router(web_vitals_router, prefix=settings.API_V1_STR, tags=["Metrics"])
+app.include_router(admin_router, prefix=settings.API_V1_STR, tags=["Admin"])
+app.include_router(websocket_router, prefix=settings.API_V1_STR, tags=["WebSocket"])
+
+app.mount("/metrics", make_asgi_app())
+
+# 3. 静态文件托管
+frontend_dist_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+
+if os.path.exists(frontend_dist_path):
+    app.mount(
+        "/customer",
+        StaticFiles(directory=os.path.join(frontend_dist_path, "customer")),
+        name="customer_assets",
+    )
+    app.mount(
+        "/shared",
+        StaticFiles(directory=os.path.join(frontend_dist_path, "shared")),
+        name="shared_assets",
+    )
+    app.mount(
+        "/assets",
+        StaticFiles(directory=os.path.join(frontend_dist_path, "assets")),
+        name="root_assets",
+    )
+
+    @app.get("/app")
+    @app.get("/app/{full_path:path}")
+    async def serve_customer_spa(full_path: str = ""):
+        base_dir = os.path.realpath(os.path.join(frontend_dist_path, "customer"))
+        file_path = os.path.realpath(os.path.join(base_dir, full_path))
+        if file_path.startswith(base_dir) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(frontend_dist_path, "index.html"))
+
+    @app.get("/admin")
+    @app.get("/admin/{full_path:path}")
+    async def serve_admin_spa(full_path: str = ""):
+        base_dir = os.path.realpath(os.path.join(frontend_dist_path, "admin"))
+        file_path = os.path.realpath(os.path.join(base_dir, full_path))
+        if file_path.startswith(base_dir) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(frontend_dist_path, "admin.html"))
+
+    @app.get("/favicon.svg")
+    async def serve_favicon():
+        return FileResponse(os.path.join(frontend_dist_path, "favicon.svg"))
+
+    @app.get("/icons.svg")
+    async def serve_icons():
+        return FileResponse(os.path.join(frontend_dist_path, "icons.svg"))
+
+    @app.get("/index.html")
+    async def serve_index_html():
+        return FileResponse(os.path.join(frontend_dist_path, "index.html"))
+
+    @app.get("/admin.html")
+    async def serve_admin_html():
+        return FileResponse(os.path.join(frontend_dist_path, "admin.html"))
+
+    @app.get("/")
+    async def root():
+        return RedirectResponse(url="/app")
+
+
+@app.get("/health")
+async def health_check():
+    from sqlalchemy import text
+
+    from app.core.database import async_engine
+    from app.core.redis import RedisHealthCheck, create_redis_client
+
+    health_status = {
+        "status": "healthy",
+        "version": "v4.1",
+        "dependencies": {},
+    }
+
+    try:
+        async with async_engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+            await conn.commit()
+        health_status["dependencies"]["database"] = "connected"
+    except Exception as exc:
+        health_status["dependencies"]["database"] = f"unavailable: {exc}"
+        health_status["status"] = "degraded"
+
+    try:
+        redis_client = create_redis_client()
+        health_check = RedisHealthCheck(redis_client)
+        redis_healthy = await health_check.check()
+        if redis_healthy:
+            health_status["dependencies"]["redis"] = "connected"
+        else:
+            health_status["dependencies"]["redis"] = "unavailable"
+            health_status["status"] = "degraded"
+    except Exception as exc:
+        health_status["dependencies"]["redis"] = f"unavailable: {exc}"
+        health_status["status"] = "degraded"
+
+    try:
+        from qdrant_client import AsyncQdrantClient
+
+        from app.core.config import settings
+
+        qdrant = AsyncQdrantClient(
+            url=settings.QDRANT_URL,
+            api_key=settings.QDRANT_API_KEY.get_secret_value() if settings.QDRANT_API_KEY else None,
+            timeout=settings.QDRANT_TIMEOUT,
+        )
+        await qdrant.get_collections()
+        await qdrant.close()
+        health_status["dependencies"]["qdrant"] = "connected"
+    except Exception as exc:
+        health_status["dependencies"]["qdrant"] = f"unavailable: {exc}"
+        health_status["status"] = "degraded"
+
+    return health_status

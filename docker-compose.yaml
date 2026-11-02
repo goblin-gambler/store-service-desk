@@ -1,0 +1,107 @@
+services:
+  # 核心数据库：PostgreSQL
+  db:
+    image: postgres:16
+    container_name: ecommerce_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-knowledge_base}
+    # 以下端口映射仅用于本地开发调试，生产环境请移除或限制访问来源
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 会话记忆缓存：Redis
+  redis:
+    image: redis/redis-stack-server:7.4.0-v8
+    container_name: ecommerce_redis
+    restart: unless-stopped
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-devpassword}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-devpassword} --loadmodule /opt/redis-stack/lib/redisearch.so --loadmodule /opt/redis-stack/lib/rejson.so
+    # 以下端口映射仅用于本地开发调试，生产环境请移除或限制访问来源
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:v1.16.3
+    container_name: ecommerce_qdrant
+    restart: unless-stopped
+    # 以下端口映射仅用于本地开发调试，生产环境请移除或限制访问来源
+    ports:
+      - "6335:6333"
+      - "6336:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/6333'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  celery_worker: 
+    build: .
+    container_name: ecommerce_celery_worker
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=4 --pool=solo --beat -E
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-devpassword}
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+
+  # FastAPI 应用
+  app:
+    build: .
+    container_name: ecommerce_app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # 以下端口映射仅用于本地开发调试，生产环境请移除或限制访问来源
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-devpassword}
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+
+volumes:
+  postgres_data: 
+  redis_data:
+  qdrant_storage:

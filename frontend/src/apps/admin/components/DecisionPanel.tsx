@@ -1,0 +1,101 @@
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2 } from 'lucide-react'
+import { riskLevelConfig } from '@/lib/risk'
+import type { Task } from '@/types'
+
+interface DecisionPanelProps {
+  task: Task | null
+  onDecision: (auditLogId: number, action: 'APPROVE' | 'REJECT', comment: string) => void
+  isSubmitting: boolean
+}
+
+export function DecisionPanel({ task, onDecision, isSubmitting }: DecisionPanelProps) {
+  const [comment, setComment] = useState('')
+  const [validationError, setValidationError] = useState('')
+
+  if (!task)
+    return (
+      <div className="bg-white rounded-lg border flex items-center justify-center">
+        <div className="text-gray-400">请先选择任务</div>
+      </div>
+    )
+
+  const riskConfig = riskLevelConfig[task.risk_level]
+
+  const handleApprove = () => {
+    setValidationError('')
+    onDecision(task.audit_log_id, 'APPROVE', comment)
+    setComment('')
+  }
+
+  const handleReject = () => {
+    if (!comment.trim()) {
+      setValidationError('拒绝时必须填写审核备注')
+      return
+    }
+    setValidationError('')
+    onDecision(task.audit_log_id, 'REJECT', comment)
+    setComment('')
+  }
+
+  return (
+    <div className="bg-white rounded-lg border flex flex-col">
+      <div className="p-3 border-b">
+        <h2 className="font-semibold">决策面板</h2>
+      </div>
+
+      <div className="p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">风险等级</span>
+          <Badge className={riskConfig?.className || ''}>{riskConfig?.label || '未知'}</Badge>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">审核备注</label>
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="请输入审核意见（拒绝时必填）"
+            rows={4}
+            className="mt-1"
+          />
+          {validationError && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Button
+            onClick={handleApprove}
+            disabled={isSubmitting}
+            className="w-full bg-green-600 hover:bg-green-700"
+          >
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : '✓ 批准'}
+          </Button>
+          <Button
+            onClick={handleReject}
+            disabled={isSubmitting}
+            variant="destructive"
+            className="w-full"
+          >
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : '✗ 拒绝'}
+          </Button>
+        </div>
+
+        <Card className="p-3 bg-gray-50">
+          <div className="text-xs text-gray-500 space-y-1">
+            <div>管理员ID: {task.user_id}</div>
+            <div>API状态: 已连接</div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}

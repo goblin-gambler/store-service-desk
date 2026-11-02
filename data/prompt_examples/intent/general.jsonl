@@ -1,0 +1,37 @@
+{"query": "ST1001 的门店地址和营业时间是什么", "primary_intent": "STORE", "secondary_intent": "QUERY", "tertiary_intent": "STORE_INFO", "slots": {"store_code": "ST1001"}, "reasoning": "查询门店基础信息。"}
+{"query": "ST1002 的制冰机和冷柜现在什么状态", "primary_intent": "STORE", "secondary_intent": "QUERY", "tertiary_intent": "DEVICE_STATUS", "slots": {"store_code": "ST1002", "device_type": "制冰机"}, "reasoning": "查询门店设备运行状态。"}
+{"query": "张江店 POS 收银机开不了机，帮我报修", "primary_intent": "STORE", "secondary_intent": "APPLY", "tertiary_intent": "REPAIR_CREATE", "slots": {"store_code": "ST1001", "device_type": "POS 收银机", "issue": "开不了机"}, "reasoning": "设备故障需要创建报修单。"}
+{"query": "我昨天提交的报修单修到哪一步了", "primary_intent": "STORE", "secondary_intent": "APPLY", "tertiary_intent": "REPAIR_STATUS", "slots": {}, "reasoning": "查询设备报修进度。"}
+{"query": "ST1001 打翻 3 箱鲜奶，损失约 350 元，帮我报损", "primary_intent": "LOSS", "secondary_intent": "APPLY", "tertiary_intent": "LOSS_DAMAGE", "slots": {"store_code": "ST1001", "amount": 350, "reason_category": "破损"}, "reasoning": "商品破损，提交报损申请。"}
+{"query": "冷柜里一批酸奶过期了，要报损", "primary_intent": "LOSS", "secondary_intent": "APPLY", "tertiary_intent": "LOSS_EXPIRED", "slots": {"store_code": "ST1001", "amount": 120, "reason_category": "过期/临期"}, "reasoning": "商品过期，提交报损申请。"}
+{"query": "制冰机故障导致原料报废，申请报损 200 元", "primary_intent": "LOSS", "secondary_intent": "APPLY", "tertiary_intent": "LOSS_EQUIPMENT", "slots": {"store_code": "ST1002", "device_code": "EQ2001", "amount": 200}, "reasoning": "设备故障导致物料报废。"}
+{"query": "我上周提交的报损单审批到哪了", "primary_intent": "LOSS", "secondary_intent": "QUERY", "tertiary_intent": "LOSS_STATUS", "slots": {"report_sn": "LS20261020001"}, "reasoning": "查询报损单审批进度。"}
+{"query": "查一下 ST1001 最近一个月的报损记录", "primary_intent": "LOSS", "secondary_intent": "QUERY", "tertiary_intent": "LOSS_HISTORY", "slots": {"store_code": "ST1001"}, "reasoning": "查询门店历史报损记录。"}
+{"query": "门店排班可以连续上 12 天吗", "primary_intent": "POLICY", "secondary_intent": "CONSULT", "tertiary_intent": "POLICY_SCHEDULE", "slots": {"policy_topic": "排班"}, "reasoning": "咨询排班制度。"}
+{"query": "请病假需要提前多久，病假工资怎么算", "primary_intent": "POLICY", "secondary_intent": "CONSULT", "tertiary_intent": "POLICY_LEAVE", "slots": {"policy_topic": "请假"}, "reasoning": "咨询请假制度。"}
+{"query": "门店报损制度规定的审批层级是怎样的", "primary_intent": "POLICY", "secondary_intent": "CONSULT", "tertiary_intent": "POLICY_LOSS", "slots": {"policy_topic": "报损制度"}, "reasoning": "咨询报损审批制度。"}
+{"query": "物料申领额度每月是多少，超过怎么办", "primary_intent": "POLICY", "secondary_intent": "CONSULT", "tertiary_intent": "POLICY_MATERIAL", "slots": {"policy_topic": "物料额度"}, "reasoning": "咨询物料申领额度制度。"}
+{"query": "ST1001 今天的补货到哪了，什么时候能到", "primary_intent": "SUPPLY", "secondary_intent": "QUERY", "tertiary_intent": "DELIVERY_STATUS", "slots": {"store_code": "ST1001", "delivery_sn": "DL20261027001"}, "reasoning": "查询补货配送进度。"}
+{"query": "冷链车温度报警了，这批货还能收吗", "primary_intent": "SUPPLY", "secondary_intent": "QUERY", "tertiary_intent": "COLD_CHAIN_ALERT", "slots": {"store_code": "ST1001", "delivery_sn": "DL20261027002"}, "reasoning": "冷链温度异常需要确认。"}
+{"query": "纸杯库存不够了，补货大概多久到", "primary_intent": "SUPPLY", "secondary_intent": "QUERY", "tertiary_intent": "REPLENISH_ETA", "slots": {"store_code": "ST1002", "material_name": "纸杯"}, "reasoning": "查询补货预计到达时间。"}
+{"query": "帮我查一下 ST1001 昨天日结的营业额", "primary_intent": "SETTLEMENT", "secondary_intent": "QUERY", "tertiary_intent": "SETTLEMENT_DAILY", "slots": {"store_code": "ST1001", "settle_date": "2026-10-26"}, "reasoning": "查询门店日结数据。"}
+{"query": "昨天日结差了 50 块，是什么原因", "primary_intent": "SETTLEMENT", "secondary_intent": "QUERY", "tertiary_intent": "SETTLEMENT_DIFF", "slots": {"store_code": "ST1001", "settle_date": "2026-10-26", "amount": 50}, "reasoning": "查询对账差异原因。"}
+{"query": "这个月的发票开好了吗，进度在哪查", "primary_intent": "SETTLEMENT", "secondary_intent": "QUERY", "tertiary_intent": "INVOICE_STATUS", "slots": {"store_code": "ST1001", "settle_date": "2026-10"}, "reasoning": "查询发票开具进度。"}
+{"query": "燕麦拿铁的配方和过敏原是什么", "primary_intent": "PRODUCT", "secondary_intent": "QUERY", "tertiary_intent": "PRODUCT_RECIPE", "slots": {"product_name": "燕麦拿铁"}, "reasoning": "查询商品配方与过敏原。"}
+{"query": "这款三明治的保质期是多久", "primary_intent": "PRODUCT", "secondary_intent": "QUERY", "tertiary_intent": "PRODUCT_SHELF_LIFE", "slots": {"product_name": "三明治"}, "reasoning": "查询商品保质期。"}
+{"query": "杨枝甘露现在还在售吗", "primary_intent": "PRODUCT", "secondary_intent": "QUERY", "tertiary_intent": "PRODUCT_STATUS", "slots": {"product_name": "杨枝甘露"}, "reasoning": "查询商品在售状态。"}
+{"query": "大杯美式的价格是多少", "primary_intent": "PRODUCT", "secondary_intent": "QUERY", "tertiary_intent": "PRODUCT_PRICE", "slots": {"product_name": "美式", "specification": "大杯"}, "reasoning": "查询商品价格。"}
+{"query": "比较一下两款燕麦奶的规格和价格", "primary_intent": "PRODUCT", "secondary_intent": "COMPARE", "tertiary_intent": "PRODUCT_SPEC_COMPARE", "slots": {"product_names": ["燕麦奶A", "燕麦奶B"], "compare_aspect": "规格"}, "reasoning": "比较两款商品的规格与价格。"}
+{"query": "看一下我这个月的物料申领单", "primary_intent": "MATERIAL", "secondary_intent": "QUERY", "tertiary_intent": "MATERIAL_VIEW", "slots": {"employee_no": "E1002"}, "reasoning": "查看物料申领单。"}
+{"query": "我的物料申领额度还剩多少", "primary_intent": "MATERIAL", "secondary_intent": "QUERY", "tertiary_intent": "MATERIAL_QUOTA", "slots": {"employee_no": "E1002"}, "reasoning": "查询物料申领额度。"}
+{"query": "申领 2 箱纸杯和 1 箱吸管", "primary_intent": "MATERIAL", "secondary_intent": "ADD", "tertiary_intent": "MATERIAL_ADD_ITEM", "slots": {"material_name": "纸杯", "quantity": 2}, "reasoning": "添加物料申领。"}
+{"query": "把申领单里的手套去掉", "primary_intent": "MATERIAL", "secondary_intent": "REMOVE", "tertiary_intent": "MATERIAL_REMOVE_ITEM", "slots": {"material_name": "手套"}, "reasoning": "从申领单移除物料。"}
+{"query": "E1002 现在有哪些权限", "primary_intent": "STAFF", "secondary_intent": "QUERY", "tertiary_intent": "STAFF_PERMISSION", "slots": {"employee_no": "E1002"}, "reasoning": "查询员工权限。"}
+{"query": "E1002 的培训记录在哪里查", "primary_intent": "STAFF", "secondary_intent": "QUERY", "tertiary_intent": "STAFF_TRAINING", "slots": {"employee_no": "E1002"}, "reasoning": "查询员工培训记录。"}
+{"query": "帮赵磊开通门店报损审批权限", "primary_intent": "STAFF", "secondary_intent": "APPLY", "tertiary_intent": "PERMISSION_APPLY", "slots": {"employee_no": "E1002", "permission": "报损审批"}, "reasoning": "员工权限变更申请。"}
+{"query": "顾客投诉奶茶里喝到异物，怎么处理", "primary_intent": "COMPLAINT", "secondary_intent": "QUERY", "tertiary_intent": "COMPLAINT_FOOD_SAFETY", "slots": {"incident_type": "食品安全", "store_code": "ST1001"}, "reasoning": "食品安全类顾客投诉。"}
+{"query": "客人说店员服务态度很差，要投诉", "primary_intent": "COMPLAINT", "secondary_intent": "QUERY", "tertiary_intent": "COMPLAINT_SERVICE", "slots": {"incident_type": "服务态度", "store_code": "ST1001"}, "reasoning": "服务态度类顾客投诉。"}
+{"query": "顾客反映门店卫生间很脏", "primary_intent": "COMPLAINT", "secondary_intent": "QUERY", "tertiary_intent": "COMPLAINT_ENVIRONMENT", "slots": {"incident_type": "环境卫生", "store_code": "ST1002"}, "reasoning": "环境卫生类顾客投诉。"}
+{"query": "你好", "primary_intent": "OTHER", "secondary_intent": "CONSULT", "tertiary_intent": null, "slots": {}, "reasoning": "问候语。"}
+{"query": "谢谢你的帮助", "primary_intent": "OTHER", "secondary_intent": "CONSULT", "tertiary_intent": null, "slots": {}, "reasoning": "感谢语。"}
+{"query": "在吗，有人吗", "primary_intent": "OTHER", "secondary_intent": "CONSULT", "tertiary_intent": null, "slots": {}, "reasoning": "呼叫人工/确认在线。"}

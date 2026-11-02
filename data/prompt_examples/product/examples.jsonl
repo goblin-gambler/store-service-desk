@@ -1,0 +1,2 @@
+{"query": "燕麦拿铁的配方是什么", "intent": "QUERY", "scenario": "recipe", "slots": {"product_name": "燕麦拿铁"}, "expected_response": "依据商品目录回答配方，目录未标注时明确说明"}
+{"query": "这款还有在售吗", "intent": "QUERY", "scenario": "status", "slots": {}, "expected_response": "说明在售/下架状态"}

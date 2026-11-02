@@ -1,0 +1,198 @@
+import logging
+import uuid
+
+from asgiref.sync import async_to_sync
+
+from app.celery_app import celery_app
+from app.evaluation.shadow import ShadowOrchestrator
+
+logger = logging.getLogger(__name__)
+
+
+async def _init_graphs():
+    """Initialize production and shadow graphs independently.
+
+    Shadow graph uses a different LLM model to enable meaningful comparison.
+    """
+    from app.agents.complaint import ComplaintAgent
+    from app.agents.evaluator import ConfidenceEvaluator
+    from app.agents.material import MaterialAgent
+    from app.agents.policy import PolicyAgent
+    from app.agents.product import ProductAgent
+    from app.agents.router import IntentRouterAgent
+    from app.agents.settlement import SettlementAgent
+    from app.agents.staff import StaffAgent
+    from app.agents.store import StoreAgent
+    from app.agents.supply import SupplyAgent
+    from app.agents.supervisor import SupervisorAgent
+    from app.core.config import settings
+    from app.core.llm_factory import create_openai_llm
+    from app.core.redis import create_redis_client
+    from app.core.tracing import build_llm_config
+    from app.graph.checkpointer import OptimizedRedisCheckpoint
+    from app.graph.workflow import compile_app_graph
+    from app.intent.service import IntentRecognitionService
+    from app.memory.structured_manager import StructuredMemoryManager
+    from app.memory.vector_manager import VectorMemoryManager
+    from app.retrieval import create_retriever
+    from app.services.loss_service import LossService
+    from app.tasks.tracing_setup import setup_celery_langsmith_tracing
+    from app.tools import (
+        ComplaintTool,
+        MaterialTool,
+        ProductTool,
+        SettlementTool,
+        StaffTool,
+        StoreTool,
+        SupplyTool,
+    )
+    from app.tools.registry import ToolRegistry
+
+    setup_celery_langsmith_tracing()
+
+    redis_client = create_redis_client()
+    checkpointer = OptimizedRedisCheckpoint(redis_client=redis_client)
+    await checkpointer.setup()
+
+    prod_llm = create_openai_llm(
+        default_config=build_llm_config(
+            agent_name="shadow_production", tags=["shadow_test", "internal"]
+        )
+    )
+    shadow_model = getattr(settings, "SHADOW_MODEL", "gpt-4o-mini")
+    shadow_llm = create_openai_llm(
+        model=shadow_model,
+        default_config=build_llm_config(
+            agent_name="shadow_experiment", tags=["shadow_test", "internal"]
+        ),
+    )
+
+    prod_intent_service = IntentRecognitionService(llm=prod_llm, redis_client=redis_client)
+    shadow_intent_service = IntentRecognitionService(llm=shadow_llm, redis_client=redis_client)
+
+    structured_manager = StructuredMemoryManager()
+    prod_router = IntentRouterAgent(
+        intent_service=prod_intent_service, llm=prod_llm, structured_manager=structured_manager
+    )
+    shadow_router = IntentRouterAgent(
+        intent_service=shadow_intent_service, llm=shadow_llm, structured_manager=structured_manager
+    )
+
+    retriever = create_retriever(llm=prod_llm, redis_client=redis_client)
+
+    tool_registry = ToolRegistry()
+    tool_registry.register(StoreTool())
+    tool_registry.register(SupplyTool())
+    tool_registry.register(SettlementTool())
+    tool_registry.register(MaterialTool())
+    tool_registry.register(StaffTool())
+    tool_registry.register(ProductTool(rewriter=retriever.rewriter))
+    tool_registry.register(ComplaintTool())
+
+    policy_agent = PolicyAgent(retriever=retriever, llm=prod_llm)
+    store_agent = StoreAgent(
+        loss_service=LossService(), tool_registry=tool_registry, llm=prod_llm
+    )
+    supply_agent = SupplyAgent(tool_registry=tool_registry, llm=prod_llm)
+    settlement_agent = SettlementAgent(tool_registry=tool_registry, llm=prod_llm)
+    material_agent = MaterialAgent(tool_registry=tool_registry, llm=prod_llm)
+    staff_agent = StaffAgent(tool_registry=tool_registry, llm=prod_llm)
+    product_agent = ProductAgent(tool_registry=tool_registry, llm=prod_llm)
+    complaint_agent = ComplaintAgent(llm=prod_llm)
+    supervisor_agent = SupervisorAgent(llm=prod_llm)
+    evaluator = ConfidenceEvaluator(llm=prod_llm)
+    vector_manager = VectorMemoryManager()
+
+    production_graph = await compile_app_graph(
+        router_agent=prod_router,
+        policy_agent=policy_agent,
+        store_agent=store_agent,
+        supply_agent=supply_agent,
+        settlement_agent=settlement_agent,
+        material_agent=material_agent,
+        staff_agent=staff_agent,
+        evaluator=evaluator,
+        checkpointer=checkpointer,
+        supervisor_agent=supervisor_agent,
+        product_agent=product_agent,
+        complaint_agent=complaint_agent,
+        llm=prod_llm,
+        vector_manager=vector_manager,
+    )
+
+    shadow_graph = await compile_app_graph(
+        router_agent=shadow_router,
+        policy_agent=PolicyAgent(retriever=retriever, llm=shadow_llm),
+        store_agent=StoreAgent(
+            loss_service=LossService(), tool_registry=tool_registry, llm=shadow_llm
+        ),
+        supply_agent=SupplyAgent(tool_registry=tool_registry, llm=shadow_llm),
+        settlement_agent=SettlementAgent(tool_registry=tool_registry, llm=shadow_llm),
+        material_agent=MaterialAgent(tool_registry=tool_registry, llm=shadow_llm),
+        staff_agent=StaffAgent(tool_registry=tool_registry, llm=shadow_llm),
+        evaluator=ConfidenceEvaluator(llm=shadow_llm),
+        checkpointer=checkpointer,
+        supervisor_agent=SupervisorAgent(llm=shadow_llm),
+        product_agent=ProductAgent(tool_registry=tool_registry, llm=shadow_llm),
+        complaint_agent=ComplaintAgent(llm=shadow_llm),
+        llm=shadow_llm,
+        vector_manager=vector_manager,
+    )
+
+    return production_graph, shadow_graph
+
+
+async def _run_shadow_test(query: str, thread_id: str | None = None) -> dict:
+    orchestrator = ShadowOrchestrator(sample_rate=0.1)
+    sid = thread_id or f"shadow-{hash(query) & 0xFFFFFFFF:08x}"
+    if not orchestrator.should_sample(sid):
+        return {"sampled": False, "message": "Query not sampled for shadow testing"}
+
+    try:
+        production_graph, shadow_graph = await _init_graphs()
+
+        session_id = f"shadow-{uuid.uuid4().hex[:8]}"
+        prod_result, shadow_result = await ShadowOrchestrator.run_shadow(
+            query=query,
+            production_graph=production_graph,
+            shadow_graph=shadow_graph,
+            session_id=session_id,
+        )
+
+        comparison = ShadowOrchestrator.compare_results(
+            thread_id=session_id,
+            production_result=prod_result,
+            shadow_result=shadow_result,
+        )
+
+        report = ShadowOrchestrator.generate_report([comparison])
+
+        return {
+            "sampled": True,
+            "query": query,
+            "comparison": {
+                "intent_match": comparison.intent_match,
+                "answer_similarity": comparison.answer_similarity,
+                "latency_delta_ms": comparison.latency_delta_ms,
+            },
+            "report": {
+                "intent_match_rate": report.intent_match_rate,
+                "avg_answer_similarity": report.avg_answer_similarity,
+                "latency_regression": report.latency_regression,
+            },
+        }
+    except Exception as e:
+        logger.exception("Shadow test failed for query: %s", query)
+        return {
+            "sampled": True,
+            "query": query,
+            "error": str(e),
+            "message": "Shadow test failed during execution.",
+        }
+
+
+@celery_app.task(bind=True, name="shadow.run_shadow_test")
+def run_shadow_test(_self, query: str | None = None) -> dict:
+    if query is None:
+        query = "test query"
+    return async_to_sync(_run_shadow_test)(query)

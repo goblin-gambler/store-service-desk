@@ -1,0 +1,188 @@
+from typing import Any, Literal
+
+from pydantic import BaseModel
+
+
+class AuditTask(BaseModel):
+    """审核任务"""
+
+    audit_log_id: int
+    thread_id: str
+    user_id: int
+    refund_application_id: int | None
+    order_id: int | None
+    trigger_reason: str
+    risk_level: str
+    context_snapshot: dict[str, Any]
+    created_at: str
+
+
+class AdminDecisionRequest(BaseModel):
+    """管理员决策请求"""
+
+    action: Literal["APPROVE", "REJECT"]
+    admin_comment: str | None = None
+
+
+class AdminDecisionResponse(BaseModel):
+    """管理员决策响应"""
+
+    success: bool
+    message: str
+    audit_log_id: int
+    action: str
+
+
+class TaskStatsResponse(BaseModel):
+    """任务统计响应"""
+
+    risk_tasks: int
+    confidence_tasks: int
+    manual_tasks: int
+    total: int
+
+
+class ConversationThreadResponse(BaseModel):
+    """会话线程摘要"""
+
+    thread_id: str
+    user_id: int | None
+    message_count: int
+    last_updated: str
+    intent_category: str | None = None
+
+
+class ConversationMessageResponse(BaseModel):
+    """会话消息"""
+
+    id: int
+    thread_id: str
+    sender_type: str
+    sender_id: int | None
+    content: dict[str, Any]
+    message_type: str
+    created_at: str
+    meta_data: dict[str, Any] | None = None
+
+
+class ConversationListResponse(BaseModel):
+    """会话列表响应"""
+
+    threads: list[ConversationThreadResponse]
+    total: int
+    offset: int
+    limit: int
+
+
+class KnowledgeDocumentResponse(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    doc_size_bytes: int | None
+    sync_status: str
+    sync_message: str | None
+    last_synced_at: str | None
+    created_at: str
+    updated_at: str
+
+
+class KnowledgeUploadResponse(BaseModel):
+    id: int
+    filename: str
+    sync_status: str
+    task_id: str | None
+
+
+class SyncStatusResponse(BaseModel):
+    task_id: str
+    status: str
+    result: dict | None
+
+
+class AlertRuleResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None
+    metric: str
+    operator: str
+    threshold: float
+    duration_seconds: int
+    severity: str
+    status: str
+    channels: list[dict]
+    suppress_interval_seconds: int
+    auto_resolve: bool
+    created_at: str
+    updated_at: str
+
+
+class AlertEventResponse(BaseModel):
+    id: int
+    rule_id: int | None
+    name: str
+    severity: str
+    status: str
+    message: str
+    metric_value: float | None
+    threshold: float | None
+    metadata_json: dict | None
+    fired_at: str
+    acknowledged_at: str | None
+    acknowledged_by: int | None
+    resolved_at: str | None
+    resolved_by: int | None
+    resolution_reason: str | None
+
+
+class AlertNotificationResponse(BaseModel):
+    id: int
+    alert_event_id: int
+    channel: str
+    destination: str
+    sent_at: str
+    success: bool
+    response_status: int | None
+    response_body: str | None
+
+
+class AlertRuleCreateRequest(BaseModel):
+    name: str
+    description: str | None = None
+    metric: str
+    operator: str
+    threshold: float
+    duration_seconds: int = 60
+    severity: str
+    channels: list[dict] | None = None
+    suppress_interval_seconds: int = 300
+    auto_resolve: bool = True
+
+
+class AlertRuleUpdateRequest(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    metric: str | None = None
+    operator: str | None = None
+    threshold: float | None = None
+    duration_seconds: int | None = None
+    severity: str | None = None
+    status: str | None = None
+    channels: list[dict] | None = None
+    suppress_interval_seconds: int | None = None
+    auto_resolve: bool | None = None
+
+
+class AlertEventListResponse(BaseModel):
+    events: list[AlertEventResponse]
+    total: int
+    offset: int
+    limit: int
+
+
+class AlertAcknowledgeRequest(BaseModel):
+    user_id: int
+
+
+class AlertResolveRequest(BaseModel):
+    user_id: int | None = None
+    reason: str | None = None

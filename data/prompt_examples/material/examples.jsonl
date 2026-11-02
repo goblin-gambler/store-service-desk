@@ -1,0 +1,2 @@
+{"query": "申领 2 箱纸杯", "intent": "ADD", "scenario": "material_add", "slots": {"material_name": "纸杯", "quantity": 2}, "expected_response": "加入申领单并说明合计与剩余额度"}
+{"query": "我的申领单里有什么", "intent": "QUERY", "scenario": "material_view", "slots": {}, "expected_response": "列出现有物料、金额和额度"}

@@ -1,0 +1,160 @@
+import logging
+from typing import Any
+
+from qdrant_client import AsyncQdrantClient, models
+
+from app.core.config import settings
+from app.models.state import AgentState
+from app.tools.base import BaseTool, ToolResult
+
+logger = logging.getLogger(__name__)
+
+
+class ProductTool(BaseTool):
+    name = "product"
+    description = "搜索门店商品与配方目录，回答下架、配方、保质期等问题"
+
+    def __init__(
+        self,
+        qdrant_client: AsyncQdrantClient | None = None,
+        rewriter: Any | None = None,
+        embedder: Any | None = None,
+        collection_name: str = "store_catalog",
+    ):
+        self._qdrant = qdrant_client
+        self._rewriter = rewriter
+        self._embedder = embedder
+        self.collection_name = collection_name
+
+    async def _get_client(self) -> AsyncQdrantClient:
+        if self._qdrant is None:
+            self._qdrant = AsyncQdrantClient(
+                url=settings.QDRANT_URL,
+                api_key=settings.QDRANT_API_KEY.get_secret_value()
+                if settings.QDRANT_API_KEY
+                else None,
+                timeout=settings.QDRANT_TIMEOUT,
+            )
+        return self._qdrant
+
+    async def execute(self, state: AgentState, **kwargs) -> ToolResult:
+        slots = state.get("slots") or {}
+        query = slots.get("product_query") or slots.get("query") or state.get("question", "")
+        category = slots.get("category") or kwargs.get("category")
+        min_price = slots.get("min_price") or kwargs.get("min_price")
+        max_price = slots.get("max_price") or kwargs.get("max_price")
+        in_stock = slots.get("in_stock") or kwargs.get("in_stock")
+
+        if self._rewriter is not None:
+            query = await self._rewriter.rewrite(
+                query,
+                conversation_history=state.get("history"),
+                memory_context=state.get("memory_context"),
+            )
+
+        client = await self._get_client()
+
+        conditions: list[Any] = []
+        if category is not None:
+            conditions.append(
+                models.FieldCondition(key="category", match=models.MatchValue(value=category))
+            )
+        if in_stock is not None:
+            conditions.append(
+                models.FieldCondition(key="in_stock", match=models.MatchValue(value=bool(in_stock)))
+            )
+        if min_price is not None or max_price is not None:
+            rng: dict[str, Any] = {}
+            if min_price is not None:
+                rng["gte"] = float(min_price)
+            if max_price is not None:
+                rng["lte"] = float(max_price)
+            conditions.append(models.FieldCondition(key="price", range=models.Range(**rng)))
+
+        query_filter = models.Filter(must=conditions) if conditions else None
+
+        try:
+            exists = await client.collection_exists(self.collection_name)
+            if not exists:
+                return ToolResult(output={"status": "not_found", "reason": "门店商品目录尚未初始化"})
+
+            query_vector = await self._embed_query(query)
+            results = await client.query_points(
+                collection_name=self.collection_name,
+                query=query_vector,
+                using="dense",
+                limit=5,
+                with_payload=True,
+                with_vectors=False,
+                query_filter=query_filter,
+            )
+
+            products = []
+            for point in results.points:
+                payload = point.payload or {}
+                products.append(
+                    {
+                        "id": point.id,
+                        "name": payload.get("name", ""),
+                        "description": payload.get("description", ""),
+                        "price": payload.get("price"),
+                        "category": payload.get("category", ""),
+                        "sku": payload.get("sku", ""),
+                        "in_stock": payload.get("in_stock", False),
+                        "attributes": payload.get("attributes", {}),
+                        "score": point.score,
+                    }
+                )
+
+            direct_answer = self._try_direct_answer(query, products)
+            return ToolResult(
+                output={
+                    "status": "success",
+                    "products": products,
+                    "direct_answer": direct_answer,
+                    "query": query,
+                }
+            )
+        except (RuntimeError, OSError, ConnectionError):
+            logger.exception("Product search failed")
+            return ToolResult(output={"status": "error", "reason": "商品搜索失败，请稍后重试"})
+
+    async def _embed_query(self, query: str) -> list[float]:
+        if self._embedder is not None:
+            return await self._embedder.aembed_query(query)
+        try:
+            from app.retrieval.embeddings import create_embedding_model
+
+            gen = create_embedding_model()
+            vector = await gen.aembed_query(query)
+            return vector
+        except (ImportError, OSError):
+            return [0.0] * settings.EMBEDDING_DIM
+
+    def _try_direct_answer(self, query: str, products: list[dict]) -> str | None:
+        if not products:
+            return None
+        top = products[0]
+        attrs = top.get("attributes") or {}
+        query_lower = query.lower()
+
+        if "价格" in query_lower and top.get("price") is not None:
+            return f"{top['name']} 的零售价为 ¥{top['price']}。"
+
+        attribute_keywords = {
+            "配方": "配方",
+            "规格": "规格",
+            "保质期": "保质期",
+            "储存": "储存条件",
+            "冷藏": "储存条件",
+            "过敏原": "过敏原",
+            "容量": "容量",
+            "下架": "状态",
+            "在售": "状态",
+        }
+
+        for keyword, attr_key in attribute_keywords.items():
+            if keyword in query_lower and attr_key in attrs:
+                return f"{top['name']} 的{keyword}为 {attrs[attr_key]}。"
+
+        return None
