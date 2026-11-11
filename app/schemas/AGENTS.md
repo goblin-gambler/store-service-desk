@@ -29,7 +29,7 @@ Pydantic v2 request and response schemas for API validation. Defines structured 
 
 ```bash
 # Run schema tests
-uv run pytest tests/schemas/
+uv run python -m pytest tests/schemas/
 ```
 
 ## Code Style

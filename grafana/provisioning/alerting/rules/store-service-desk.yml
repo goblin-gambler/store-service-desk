@@ -2,11 +2,11 @@ apiVersion: 1
 
 groups:
   - orgId: 1
-    name: ecommerce-agent-alerts
+    name: store-service-desk-alerts
     folder: Observability
     interval: 1m
     rules:
-      - uid: ecommerce-agent-high-error-rate
+      - uid: store-service-desk-high-error-rate
         title: High Error Rate
         condition: A
         data:
@@ -43,9 +43,9 @@ groups:
         labels:
           severity: warning
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-high-latency-p95
+      - uid: store-service-desk-high-latency-p95
         title: High Latency P95
         condition: A
         data:
@@ -82,9 +82,9 @@ groups:
         labels:
           severity: warning
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-high-human-transfer-rate
+      - uid: store-service-desk-high-human-transfer-rate
         title: High Human Transfer Rate
         condition: A
         data:
@@ -121,9 +121,9 @@ groups:
         labels:
           severity: warning
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-low-confidence-score
+      - uid: store-service-desk-low-confidence-score
         title: Low Confidence Score
         condition: A
         data:
@@ -160,9 +160,9 @@ groups:
         labels:
           severity: warning
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-low-intent-accuracy
+      - uid: store-service-desk-low-intent-accuracy
         title: Low Intent Accuracy
         condition: A
         data:
@@ -199,9 +199,9 @@ groups:
         labels:
           severity: critical
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-high-hallucination-rate
+      - uid: store-service-desk-high-hallucination-rate
         title: High Hallucination Rate
         condition: A
         data:
@@ -238,9 +238,9 @@ groups:
         labels:
           severity: critical
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-low-rag-precision
+      - uid: store-service-desk-low-rag-precision
         title: Low RAG Precision
         condition: A
         data:
@@ -277,9 +277,9 @@ groups:
         labels:
           severity: warning
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
-      - uid: ecommerce-agent-service-down
+      - uid: store-service-desk-service-down
         title: Service Down
         condition: A
         data:
@@ -289,7 +289,7 @@ groups:
               to: 0
             datasourceUid: mimir
             model:
-              expr: up{job="ecommerce-agent"} == 0
+              expr: up{job="store-service-desk"} == 0
               conditions:
                 - evaluator:
                     params:
@@ -316,7 +316,7 @@ groups:
         labels:
           severity: critical
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
 
       - uid: slo-availability-burn-rate-fast
         title: SLO Availability Burn Rate (Fast)
@@ -364,7 +364,7 @@ groups:
         labels:
           severity: critical
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
           slo: availability
 
       - uid: slo-availability-burn-rate-slow
@@ -413,5 +413,5 @@ groups:
         labels:
           severity: warning
           team: observability
-          service: ecommerce-agent
+          service: store-service-desk
           slo: availability

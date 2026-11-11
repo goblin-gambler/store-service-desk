@@ -1,136 +1,177 @@
 # scripts/seed_large_data.py
+"""批量生成门店演示数据：用户、报损单、审计单与消息卡片。
+
+脚本只清理业务流水（审计、消息、报损），不会删除用户，避免破坏其他关联表。
+"""
+
 import asyncio
 import os
 import random
 import sys
 import uuid
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 sys.path.append(os.getcwd())
 
-from sqlmodel import delete
+from sqlmodel import delete, select
 
 from app.core.database import async_session_maker
-
-# 导入所有涉及到的模型以进行清理
-from app.models.audit import AuditLog
-from app.models.message import MessageCard
-from app.models.order import Order, OrderStatus
+from app.models.audit import AuditAction, AuditLog, AuditTriggerType, RiskLevel
+from app.models.loss import ApprovalLevel, LossReason, LossReport, LossStatus
+from app.models.message import MessageCard, MessageStatus, MessageType
 from app.models.user import User
 
 # --- 配置参数 ---
 USER_COUNT = 200
-TOTAL_ORDERS = 500
+TOTAL_REPORTS = 500
 
-# --- 随机池 ---
-PRODUCT_POOL = [
-    {"name": "运动T恤", "price": 99.0},
-    {"name": "瑜伽裤", "price": 158.0},
-    {"name": "跑步鞋", "price": 599.0},
-    {"name": "运动水壶", "price": 45.0},
-    {"name": "护膝", "price": 88.0},
-    {"name": "全棉运动袜", "price": 15.0},
-    {"name": "速干衣", "price": 120.0},
-    {"name": "筋膜枪", "price": 899.0},
+STORES = [
+    ("ST1001", "上海张江店"),
+    ("ST1002", "北京中关村店"),
+    ("ST1003", "广州天河店"),
+    ("ST1004", "深圳福田店"),
 ]
 
-ADDRESS_POOL = [
-    "上海市浦东新区张江高科技园区",
-    "北京市朝阳区三里屯街道",
-    "广州市天河区珠江新城",
-    "深圳市南山区科技园",
-    "杭州市西湖区文三路",
-    "成都市武侯区软件园",
+REASONS = [
+    (LossReason.DAMAGE, ["搬运时摔碎", "顾客碰倒", "冷柜倾倒"]),
+    (LossReason.EXPIRED, ["临期未售完", "保质期管理疏漏", "批次过期"]),
+    (LossReason.EQUIPMENT, ["制冰机故障", "冷柜断电", "封口机损坏"]),
+    (LossReason.OTHER, ["盘点差异", "账实不符", "其他损耗"]),
 ]
 
-STATUS_POOL = [
-    OrderStatus.PENDING,
-    OrderStatus.PAID,
-    OrderStatus.SHIPPED,
-    OrderStatus.DELIVERED,
-    OrderStatus.CANCELLED,
-]
+AUTO_APPROVE_AMOUNT = 200.0
+REGIONAL_APPROVAL_AMOUNT = 2000.0
 
 
-async def seed_large_data():
+def _approval_level(amount: float) -> ApprovalLevel:
+    if amount < AUTO_APPROVE_AMOUNT:
+        return ApprovalLevel.AUTO
+    if amount <= REGIONAL_APPROVAL_AMOUNT:
+        return ApprovalLevel.STORE_MANAGER
+    return ApprovalLevel.REGIONAL
+
+
+def _random_amount() -> float:
+    tier = random.choices(["auto", "manager", "regional"], weights=[0.4, 0.45, 0.15])[0]
+    if tier == "auto":
+        return round(random.uniform(10, 199), 2)
+    if tier == "manager":
+        return round(random.uniform(200, 2000), 2)
+    return round(random.uniform(2000.01, 50000), 2)
+
+
+async def seed_large_data() -> None:
     async with async_session_maker() as session:
-        print("🧹 正在清理旧数据（按外键约束逆序）...")
-
-        # 1. 先删除最底层的关联数据（子表）
+        print("清理旧业务流水...")
         await session.exec(delete(AuditLog))
         await session.exec(delete(MessageCard))
-
-        # 2. 再删除中间层数据
-        await session.exec(delete(Order))
-
-        # 3. 最后删除顶层数据（父表）
-        await session.exec(delete(User))
-
+        await session.exec(delete(LossReport))
         await session.commit()
-        print("✅ 旧数据清理完毕。")
 
-        # --- 下面的生成逻辑保持不变，但使用 .exec() 顺应新版本建议 ---
-
-        # 1. 创建用户
-        print(f"👤 正在生成 {USER_COUNT} 个用户...")
-        users = []
+        print(f"准备 {USER_COUNT} 个用户...")
+        result = await session.exec(select(User).order_by(User.id).limit(USER_COUNT))
+        users = list(result.all())
+        existing = {u.username for u in users}
         for i in range(1, USER_COUNT + 1):
+            username = f"bulk_{i:03d}"
+            if username in existing:
+                continue
             user = User(
-                username=f"user_{i:03}",
-                email=f"user_{i:03}@example.com",
-                full_name=f"测试用户_{i:03}",
-                password_hash=User.hash_password(f"password{i:03}"),
+                username=username,
+                email=f"{username}@example.com",
+                full_name=f"批量员工_{i:03d}",
+                password_hash=User.hash_password(f"bulkpass{i:03d}"),
             )
+            session.add(user)
             users.append(user)
-
-        session.add_all(users)
         await session.flush()
+        users = [u for u in users if u.id is not None]
+        if not users:
+            raise RuntimeError("没有可用用户，请先执行 scripts/seed_data.py")
 
-        # 2. 生成订单
-        print(f"📦 正在生成 {TOTAL_ORDERS} 个订单...")
-        orders = []
-        for i in range(1, TOTAL_ORDERS + 1):
-            target_user = random.choice(users)
-            num_items = random.randint(1, 3)
-            order_items = random.sample(PRODUCT_POOL, num_items)
+        print(f"生成 {TOTAL_REPORTS} 条报损单...")
+        now = datetime.now()
+        for i in range(1, TOTAL_REPORTS + 1):
+            user = random.choice(users)
+            store_code, store_name = random.choice(STORES)
+            reason, details = random.choice(REASONS)
+            amount = _random_amount()
+            level = _approval_level(amount)
+            auto = level == ApprovalLevel.AUTO
+            created_at = now - timedelta(days=random.randint(0, 30), minutes=random.randint(0, 1439))
 
-            total_amount = 0
-            processed_items = []
-            for item in order_items:
-                qty = random.randint(1, 2)
-                processed_items.append({"name": item["name"], "qty": qty, "price": item["price"]})
-                total_amount += item["price"] * qty  # ty:ignore[unsupported-operator]
-
-            random_days = random.randint(0, 30)
-            created_at = datetime.now() - timedelta(days=random_days)
-            status = random.choice(STATUS_POOL)
-
-            order = Order(
-                order_sn=f"SN{created_at.strftime('%Y%m%d')}{i:05}",
-                user_id=target_user.id,
-                status=status,
-                total_amount=round(total_amount, 2),
-                items=processed_items,
-                tracking_number=f"SF{uuid.uuid4().hex[:10].upper()}"
-                if status in [OrderStatus.SHIPPED, OrderStatus.DELIVERED]
-                else None,
-                shipping_address=random.choice(ADDRESS_POOL) + f"{random.randint(1, 999)}号",
+            report = LossReport(
+                report_sn=f"LS{created_at:%Y%m%d}{i:05d}",
+                store_code=store_code,
+                store_name=store_name,
+                user_id=user.id or 0,
+                amount=Decimal(str(amount)),
+                reason_category=reason.value,
+                reason_detail=random.choice(details),
+                status=(LossStatus.APPROVED if auto else LossStatus.PENDING).value,
+                approval_level=level.value,
+                approver_note="金额低于自动通过阈值，系统自动核销" if auto else None,
+                reviewed_at=created_at if auto else None,
                 created_at=created_at,
             )
-            orders.append(order)
+            session.add(report)
+            await session.flush()
+            await session.refresh(report)
 
-        # 分批写入
-        batch_size = 100
-        for i in range(0, len(orders), batch_size):
-            session.add_all(orders[i : i + batch_size])
-            await session.commit()
-            print(f"   已写入 {i + len(orders[i : i + batch_size])} / {TOTAL_ORDERS} 个订单...")
+            if auto:
+                continue
 
-        print("\n🎉 大规模数据初始化成功！")
+            thread_id = f"{user.id}__bulk_{uuid.uuid4().hex[:8]}"
+            audit = AuditLog(
+                thread_id=thread_id,
+                user_id=user.id or 0,
+                trigger_reason=f"报损金额 ¥{amount:.2f} 触发{level.value}",
+                risk_level=(
+                    RiskLevel.HIGH if level == ApprovalLevel.REGIONAL else RiskLevel.MEDIUM
+                ),
+                action=AuditAction.PENDING,
+                trigger_type=AuditTriggerType.RISK,
+                context_snapshot={
+                    "subject_type": "loss_report",
+                    "loss_report_id": report.id,
+                    "loss_report_sn": report.report_sn,
+                    "store_code": store_code,
+                    "store_name": store_name,
+                    "amount": amount,
+                    "approval_level": level.value,
+                },
+            )
+            session.add(audit)
+            await session.flush()
+            await session.refresh(audit)
+
+            session.add(
+                MessageCard(
+                    thread_id=thread_id,
+                    message_type=MessageType.SYSTEM,
+                    status=MessageStatus.SENT,
+                    content={
+                        "type": "admin_notification",
+                        "audit_log_id": audit.id,
+                        "risk_level": audit.risk_level,
+                        "message": f"新的{audit.risk_level}风险审核任务",
+                    },
+                    sender_type="system",
+                    receiver_id=None,
+                )
+            )
+
+            if i % 100 == 0:
+                await session.commit()
+                print(f"  已写入 {i} / {TOTAL_REPORTS}")
+
+        await session.commit()
+        print("批量门店演示数据生成完成。")
 
 
 if __name__ == "__main__":
-    confirm = input("⚠️ 该脚本将清空所有业务表数据，是否继续？(y/n): ")
+    confirm = input("该脚本会清空审计、消息与报损流水，是否继续？(y/n): ")
     if confirm.lower() == "y":
         asyncio.run(seed_large_data())
     else:

@@ -48,7 +48,7 @@ For any other area, this root file applies.
 ## Repo Map
 
 - `@app/`: FastAPI backend, LangGraph workflow, agents, tools, services, observability, evaluation, memory, intent, retrieval, confidence, context, api, models, schemas, utils, websocket, tasks, core.
-  - `@app/agents/`: Expert agent fleet (order, product, cart, payment, logistics, account, policy, complaint, supervisor, router, evaluator).
+  - `@app/agents/`: Expert agent fleet (store/loss, policy, supply, settlement, product, material, staff, complaint, supervisor, router, evaluator).
   - `@app/graph/`: LangGraph workflow compiler and runtime node layer.
     - `@app/graph/checkpointer.py` - OptimizedRedisCheckpoint with diff-based storage, compression, and TTL management.
     - `@app/graph/subgraphs.py` - Subgraph wrapper for agent state isolation.
@@ -56,8 +56,8 @@ For any other area, this root file applies.
     - `@app/intent/few_shot_loader.py` - Few-shot example loading for intent classification.
   - `@app/memory/`: Multi-tier memory system (structured PostgreSQL, vector Qdrant, fact extraction, summarization, compaction).
     - `@app/memory/structured_manager.py` - Structured memory manager for user profiles/preferences/facts.
-  - `@app/tools/`: Tool layer for agents (product, cart, logistics, payment, account, complaint tools + registry).
-  - `@app/tasks/`: Celery async tasks (memory, notifications, knowledge, refund, evaluation, continuous improvement, prompt effects, shadow testing).
+  - `@app/tools/`: Tool layer for agents (store, supply, settlement, product, material, staff, complaint tools + registry).
+  - `@app/tasks/`: Celery async tasks (memory, notifications, knowledge, audit, evaluation, continuous improvement, prompt effects, shadow testing).
     - `@app/tasks/alert_tasks.py` - Evaluate alert rules, check service health.
     - `@app/tasks/autoheal.py` - Self-healing orchestration module.
     - `@app/tasks/autoheal_tasks.py` - Restart stuck workers, clear expired Redis keys, check DB pool health.
@@ -76,12 +76,12 @@ For any other area, this root file applies.
   - `@app/websocket/`: WebSocket connection manager for real-time chat.
   - `@app/schemas/`: Pydantic request/response schemas.
   - `@app/api/`: FastAPI routers (chat, auth, admin, websocket, status).
-  - `@app/models/`: SQLModel/Pydantic data models (user, order, refund, memory, evaluation, experiment, etc.).
+  - `@app/models/`: SQLModel/Pydantic data models (user, loss, complaint, memory, evaluation, experiment, etc.).
     - `@app/models/alert.py` - AlertRule, AlertEvent, AlertNotification models.
     - `@app/models/pii_audit.py` - PIIAuditLog model for GDPR compliance.
     - `@app/models/review.py` - ReviewTicket, ReviewerMetrics models.
     - `@app/models/token_usage.py` - TokenUsageLog, OptimizationSuggestion models.
-  - `@app/services/`: Business logic services (auth, order, refund, admin, status, experiment, continuous improvement).
+  - `@app/services/`: Business logic services (auth, loss, admin, status, review queue, experiment, continuous improvement).
     - `@app/services/alert_service.py` - AlertService with email/webhook/PagerDuty/OpsGenie integrations, suppression, deduplication, SLA tracking.
     - `@app/services/online_eval.py` - OnlineEvalService for real-time evaluation from user feedback.
     - `@app/services/review_queue.py` - ReviewQueueService for human review tickets with SLA tracking.
@@ -90,7 +90,7 @@ For any other area, this root file applies.
     - `@app/core/structured_logging.py` - JsonFormatter with trace_id/span_id/correlation_id support.
   - `@app/core/utils.py`: Core cross-cutting utilities (`utc_now`, `build_thread_id`, `clamp_score`).
   - `@app/safety/`: Output content moderation system (4-layer pipeline: rule-based, regex, embedding similarity, LLM judge).
-  - `@app/utils/`: Shared domain utility functions (order utilities, helpers).
+  - `@app/utils/`: Shared domain utility functions.
 - `@frontend/`: React 19 + TypeScript frontend (Vite, Tailwind CSS, shadcn/ui).
   - `@frontend/src/apps/admin/`: B端管理后台 (dashboard, knowledge base, agent config, feedback, analytics).
   - `@frontend/src/apps/customer/`: C端用户聊天界面 (SSE streaming chat).
@@ -134,8 +134,8 @@ uv run alembic revision --autogenerate -m "description"
 
 ```bash
 # Backend tests
-uv run pytest
-uv run pytest --cov=app --cov-fail-under=75
+uv run python -m pytest
+uv run python -m pytest --cov=app --cov-fail-under=75
 
 # Backend lint + format
 uv run ruff check app tests --fix
@@ -172,7 +172,7 @@ pre-commit run --all-files
 All backend code is async. Use `AsyncSession`, `await llm.ainvoke(...)`, async FastAPI routes, and async database drivers.
 
 ### 2. Multi-Tenant Isolation
-Every query involving orders, refunds, carts, or user memories must filter by the current `user_id`. Never return cross-user data.
+Every query involving loss reports, stores, or user memories must filter by the current `user_id`. Never return cross-user data.
 
 ### 3. No Hardcoded Secrets
 Use `app.core.config.settings` for all configuration. Never read `os.environ` directly outside of `@app/core/config.py`.

@@ -42,8 +42,8 @@ def _truncate_parts_by_budget(parts: list[str], budget: int) -> list[str]:
 
 
 DEFAULT_PROMPT_VARIABLES = {
-    "company_name": "XX电商平台",
-    "user_membership_level": "普通会员",
+    "company_name": "连锁零售门店",
+    "user_role_title": "店员",
 }
 
 
@@ -172,9 +172,9 @@ class BaseAgent(ABC):
         user_context: dict[str, Any] = {}
         if memory_context:
             user_profile = memory_context.get("user_profile") or {}
-            membership_level = user_profile.get("membership_level")
-            if membership_level:
-                user_context["user_membership_level"] = membership_level
+            role_title = user_profile.get("role_title")
+            if role_title:
+                user_context["user_role_title"] = role_title
         return user_context
 
     def _build_system_prompt(self, user_context: dict[str, Any] | None = None) -> str | None:

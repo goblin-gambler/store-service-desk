@@ -190,7 +190,7 @@ class ReviewQueueService:
         self,
         confidence: float | None,
         safety_blocked: bool,
-        refund_amount: float | None,
+        loss_amount: float | None,
         is_complaint: bool,
     ) -> tuple[float, dict[str, Any]]:
         score = 0.0
@@ -202,9 +202,9 @@ class ReviewQueueService:
         if safety_blocked:
             score += 0.3
             factors["safety_blocked"] = True
-        if refund_amount is not None and refund_amount >= 2000.0:
+        if loss_amount is not None and loss_amount >= 2000.0:
             score += 0.2
-            factors["high_refund"] = refund_amount
+            factors["high_loss"] = loss_amount
         if is_complaint:
             score += 0.1
             factors["complaint"] = True

@@ -302,7 +302,7 @@ class TestSafetyFilterKeywords:
 
     @pytest.mark.asyncio
     async def test_safe_query(self, safety_filter):
-        result = await safety_filter.check("你好，我想查询订单")
+        result = await safety_filter.check("你好，我想查询门店")
         assert result.is_safe is True
         assert result.risk_level == "low"
         assert result.reason == "通过所有安全检查"
@@ -1032,7 +1032,7 @@ class TestSafetyFilterRealLLM:
     @pytest.mark.requires_llm
     @pytest.mark.asyncio
     async def test_real_llm_safe_query(self, real_safety_filter):
-        result = await real_safety_filter.check("你好，我想查询订单")
+        result = await real_safety_filter.check("你好，我想查询门店")
         assert isinstance(result.is_safe, bool)
         assert result.risk_level in ("low", "medium", "high")
 

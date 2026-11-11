@@ -32,7 +32,7 @@ LangGraph workflow compiler and runtime node layer. Responsible for Agent Subgra
 
 ```bash
 # Graph unit tests and integration tests
-uv run pytest tests/graph/ tests/integration/
+uv run python -m pytest tests/graph/ tests/integration/
 ```
 
 ## Code Style
@@ -81,12 +81,14 @@ Keys present in every agent's filtered state:
 
 | Agent | Additional keys beyond common |
 |-------|------------------------------|
-| `policy_agent` | `retrieval_result` |
-| `order_agent` | `order_data`, `retrieval_result` |
-| `logistics` | `order_data`, `retrieval_result` |
+| `policy_agent` | `retrieval_result`, `answer` |
+| `store_agent` | `store_data`, `loss_data`, `loss_flow_active`, `retrieval_result`, `audit_level`, `audit_log_id`, `audit_reason` |
+| `supply_agent` | `supply_data`, `retrieval_result` |
+| `settlement_agent` | `settlement_data`, `retrieval_result` |
+| `material_agent` | `material_data`, `retrieval_result` |
+| `staff_agent` | `staff_data`, `retrieval_result` |
 | `product` | `product_data`, `retrieval_result` |
-| `cart` | `cart_data`, `retrieval_result` |
-| `account`, `payment`, `complaint` | `retrieval_result` |
+| `complaint` | `retrieval_result`, `audit_level`, `audit_log_id`, `audit_reason` |
 
 The subgraph wrapper (`@app/graph/subgraphs.py`) and direct agent nodes (`_build_agent_node` in `@app/graph/nodes.py`) use these lists to filter the full `AgentState` via `_filter_state()` before passing it to the agent's `process()` method. Any state updates returned by the agent are then merged back into the parent graph state via `Command(update=...)`.
 

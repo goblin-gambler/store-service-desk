@@ -4,7 +4,7 @@ These tests measure latencies of critical paths and enforce SLOs:
 - P95 latency < 500ms for retrieval and memory operations
 - P99 latency < 1000ms for end-to-end chat
 
-Run with: uv run pytest tests/performance/ -v
+Run with: uv run python -m pytest tests/performance/ -v
 """
 
 import asyncio
@@ -142,11 +142,11 @@ class MockStructuredManager:
         await asyncio.sleep(0.003)
         return MagicMock(
             user_id=user_id,
-            membership_level="gold",
+            employee_no="E1003",
+            store_code="ST1003",
+            role_title="店长",
             preferred_language="zh",
             timezone="Asia/Shanghai",
-            total_orders=10,
-            lifetime_value=5000.0,
         )
 
     async def get_user_preferences(self, session: Any, user_id: int) -> list[Any]:

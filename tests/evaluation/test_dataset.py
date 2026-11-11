@@ -57,8 +57,8 @@ def test_golden_record_invalid_intent():
 
 
 def test_golden_record_rejects_legacy_intents():
-    """The e-commerce intents (ORDER/AFTER_SALES/PAYMENT) are no longer valid."""
-    for legacy_intent in ("ORDER", "AFTER_SALES", "PAYMENT"):
+    """Legacy cart/logistics/after-sales intents are no longer valid."""
+    for legacy_intent in ("CART", "LOGISTICS", "AFTER_SALES"):
         with pytest.raises(ValueError, match="Invalid intent"):
             GoldenRecord(
                 query="test",

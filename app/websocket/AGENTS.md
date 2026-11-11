@@ -27,7 +27,7 @@ WebSocket connection manager for real-time chat between users and the agent syst
 
 ```bash
 # Run WebSocket module tests
-uv run pytest tests/test_websocket.py tests/test_websocket_manager.py
+uv run python -m pytest tests/test_websocket.py tests/test_websocket_manager.py
 ```
 
 ## Code Style

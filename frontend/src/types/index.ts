@@ -251,7 +251,6 @@ export interface ComplaintTicket {
   assigned_to: number | null
   created_at: string
   updated_at: string
-  order_sn: string | null
   description: string
   expected_resolution: string | null
 }

@@ -26,7 +26,7 @@ Confidence signal calculation for agent response quality assessment. Combines RA
 
 ```bash
 # Run confidence module tests
-uv run pytest tests/test_confidence_signals.py
+uv run python -m pytest tests/test_confidence_signals.py
 ```
 
 ## Code Style

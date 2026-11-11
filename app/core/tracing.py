@@ -42,7 +42,7 @@ def build_llm_config(
         agent_name: Identifier for the agent / component making the LLM call.
         user_id: Current user id (for multi-tenant isolation visibility).
         thread_id: Conversation thread id.
-        intent: Recognised intent category (e.g. ``"ORDER"``, ``"POLICY"``).
+        intent: Recognised intent category (e.g. ``"STORE"``, ``"POLICY"``).
         tags: LangSmith tags for filtering / grouping (e.g.
             ``["user_visible"]``, ``["internal", "confidence_eval"]``).
         extra_metadata: Arbitrary additional metadata to attach to the run.

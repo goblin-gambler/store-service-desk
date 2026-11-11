@@ -24,8 +24,7 @@ SQLModel/Pydantic data models for database entities and agent state. Defines the
 | Agent state | `@app/models/state.py` | `AgentState` TypedDict, `AgentProcessResult`, `make_agent_state()` factory |
 | Memory models | `@app/models/memory.py` | `UserProfile`, `UserPreference`, `InteractionSummary`, `UserFact`, `AgentConfig`, `RoutingRule` |
 | User model | `@app/models/user.py` | User account model |
-| Order model | `@app/models/order.py` | Order entity model |
-| Refund model | `@app/models/refund.py` | Refund request model |
+| Loss model | `@app/models/loss.py` | 报损单、审批级别与报损原因 |
 | Complaint model | `@app/models/complaint.py` | Complaint ticket model |
 | Message model | `@app/models/message.py` | Chat message model |
 | Evaluation models | `@app/models/evaluation.py` | Evaluation run and result models |
@@ -43,7 +42,7 @@ SQLModel/Pydantic data models for database entities and agent state. Defines the
 
 ```bash
 # Run model tests
-uv run pytest tests/models/
+uv run python -m pytest tests/models/
 ```
 
 ## Code Style
@@ -63,7 +62,7 @@ General Python rules are defined in the root `AGENTS.md`. Model-specific convent
 
 ## Conventions
 
-- **Table names**: Use plural snake_case for table names (e.g., `users`, `orders`).
+- **Table names**: Use plural snake_case for table names (e.g., `users`, `loss_reports`).
 - **Primary keys**: Use auto-incrementing integers for primary keys.
 - **Timestamps**: Include `created_at` and `updated_at` on all models.
 - **Soft deletes**: Use `is_deleted` flag rather than hard deletion where appropriate.

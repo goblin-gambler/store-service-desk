@@ -181,7 +181,7 @@ async def test_compute_quality_scores_with_real_llm(
     assert user.id is not None
 
     await _create_feedback(
-        db_session, user.id, score=1, comment="客服回复很及时，帮我解决了退款问题，态度也很好"
+        db_session, user.id, score=1, comment="客服回复很及时，帮我解决了报损问题，态度也很好"
     )
 
     with patch("app.services.online_eval.create_openai_llm", return_value=real_llm):

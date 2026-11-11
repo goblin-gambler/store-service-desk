@@ -530,7 +530,7 @@ export function AgentConfig() {
                 id="intent_category"
                 value={ruleForm.intent_category}
                 onChange={(e) => setRuleForm({ ...ruleForm, intent_category: e.target.value })}
-                placeholder="例如: ORDER"
+                placeholder="例如: STORE"
               />
             </div>
             <div className="grid gap-2">
@@ -539,7 +539,7 @@ export function AgentConfig() {
                 id="target_agent"
                 value={ruleForm.target_agent}
                 onChange={(e) => setRuleForm({ ...ruleForm, target_agent: e.target.value })}
-                placeholder="例如: order_agent"
+                placeholder="例如: store_agent"
               />
             </div>
             <div className="grid gap-2">

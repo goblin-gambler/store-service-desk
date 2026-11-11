@@ -21,7 +21,7 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  - job_name: "ecommerce-agent"
+  - job_name: "store-service-desk"
     static_configs:
       - targets: ["host.docker.internal:8000"]
     metrics_path: "/metrics"

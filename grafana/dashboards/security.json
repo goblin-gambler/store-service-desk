@@ -3,7 +3,7 @@
   "uid": "security-monitoring",
   "title": "Security Monitoring",
   "tags": [
-    "ecommerce",
+    "store",
     "agent",
     "security"
   ],
@@ -40,7 +40,7 @@
           "type": "loki",
           "uid": "loki"
         },
-        "expr": "{app=\"ecommerce-agent\"} |= \"trace_id=\"",
+        "expr": "{app=\"store-service-desk\"} |= \"trace_id=\"",
         "iconColor": "blue",
         "tags": ["trace"],
         "type": "tags"

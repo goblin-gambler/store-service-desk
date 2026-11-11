@@ -53,7 +53,7 @@ async def test_get_agent_config_cache_miss_db_hit(mock_redis, mock_session):
 async def test_get_agent_config_cache_hit(mock_redis):
     cached = json.dumps(
         {
-            "agent_name": "order_agent",
+            "agent_name": "store_agent",
             "system_prompt": "order prompt",
             "confidence_threshold": 0.8,
             "max_retries": 2,
@@ -64,10 +64,10 @@ async def test_get_agent_config_cache_hit(mock_redis):
     mock_redis.get.return_value = cached
 
     with patch("app.agents.config_loader.create_redis_client", return_value=mock_redis):
-        got = await config_loader.get_agent_config("order_agent")
+        got = await config_loader.get_agent_config("store_agent")
 
     assert got is not None
-    assert got.agent_name == "order_agent"
+    assert got.agent_name == "store_agent"
     assert got.enabled is False
     mock_redis.setex.assert_not_called()
 
@@ -117,7 +117,7 @@ async def test_get_effective_system_prompt_fallback(mock_redis):
 @pytest.mark.asyncio
 async def test_get_routing_rules(mock_session):
     rules = [
-        RoutingRule(intent_category="ORDER", target_agent="order_agent", priority=10),
+        RoutingRule(intent_category="STORE", target_agent="store_agent", priority=10),
         RoutingRule(intent_category="POLICY", target_agent="policy_agent", priority=5),
     ]
     result_mock = MagicMock()
@@ -131,13 +131,13 @@ async def test_get_routing_rules(mock_session):
         got = await config_loader.get_routing_rules()
 
     assert len(got) == 2
-    assert got[0].intent_category == "ORDER"
+    assert got[0].intent_category == "STORE"
 
 
 @pytest.mark.asyncio
 async def test_get_target_agent_for_intent_matches_rule(mock_session):
     rules = [
-        RoutingRule(intent_category="ORDER", target_agent="order_agent", priority=10),
+        RoutingRule(intent_category="STORE", target_agent="store_agent", priority=10),
     ]
     result_mock = MagicMock()
     result_mock.all.return_value = rules
@@ -147,9 +147,9 @@ async def test_get_target_agent_for_intent_matches_rule(mock_session):
         mock_maker.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         mock_maker.return_value.__aexit__ = AsyncMock(return_value=False)
 
-        target = await config_loader.get_target_agent_for_intent("ORDER")
+        target = await config_loader.get_target_agent_for_intent("STORE")
 
-    assert target == "order_agent"
+    assert target == "store_agent"
 
 
 @pytest.mark.asyncio

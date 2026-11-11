@@ -29,19 +29,19 @@ async def test_get_user_profile_found(manager, db_session):
     assert user.id is not None
     profile = UserProfile(
         user_id=user.id,
-        membership_level="gold",
+        employee_no="E1002",
+        store_code="ST1002",
+        role_title="店长",
         preferred_language="zh",
         timezone="Asia/Shanghai",
-        total_orders=10,
-        lifetime_value=5000.0,
     )
     db_session.add(profile)
     await db_session.commit()
 
     result = await manager.get_user_profile(db_session, user.id)
     assert result is not None
-    assert result.membership_level == "gold"
-    assert result.total_orders == 10
+    assert result.role_title == "店长"
+    assert result.store_code == "ST1002"
 
 
 @pytest.mark.asyncio
@@ -94,14 +94,14 @@ async def test_save_interaction_summary(manager, db_session):
         user_id=user.id,
         thread_id="thread-abc",
         summary="User asked about shipping.",
-        resolved_intent="LOGISTICS",
+        resolved_intent="SUPPLY",
         satisfaction_score=4.5,
     )
     await db_session.commit()
 
     assert record.id is not None
     assert record.summary_text == "User asked about shipping."
-    assert record.resolved_intent == "LOGISTICS"
+    assert record.resolved_intent == "SUPPLY"
     assert record.satisfaction_score == 4.5
 
 

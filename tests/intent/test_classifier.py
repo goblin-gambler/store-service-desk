@@ -72,7 +72,7 @@ async def test_function_calling_exception_graceful_fallback(classifier, determin
 # ========== Layer 2: Rule Matching Tests ==========
 
 
-def test_rule_matching_order_query(classifier):
+def test_rule_matching_store_query(classifier):
     """测试规则匹配 - 门店信息查询"""
     result = classifier._classify_with_rules("ST1001 的门店地址是什么")
 
@@ -81,7 +81,7 @@ def test_rule_matching_order_query(classifier):
     assert "matched_pattern" in result.slots
 
 
-def test_rule_matching_after_sales_apply(classifier):
+def test_rule_matching_loss_apply(classifier):
     """测试规则匹配 - 报损申请"""
     result = classifier._classify_with_rules("鲜奶过期了，帮我报损")
 
@@ -97,7 +97,7 @@ def test_rule_matching_policy_consult(classifier):
     assert result.secondary_intent == IntentAction.CONSULT
 
 
-def test_rule_matching_cart_add(classifier):
+def test_rule_matching_material_add(classifier):
     """测试规则匹配 - 物料申领"""
     result = classifier._classify_with_rules("申领 2 箱纸杯和吸管")
 
@@ -115,7 +115,7 @@ def test_rule_matching_default_other(classifier):
     assert result.confidence == 0.3
 
 
-def test_rule_matching_logistics_query(classifier):
+def test_rule_matching_supply_query(classifier):
     """测试规则匹配 - 配送/补货查询"""
     result = classifier._classify_with_rules("今天的补货到哪了")
 

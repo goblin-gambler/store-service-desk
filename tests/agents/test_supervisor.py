@@ -26,7 +26,7 @@ def supervisor():
 @pytest.mark.asyncio
 async def test_supervisor_single_intent(supervisor):
     state = make_agent_state(
-        question="运费怎么算",
+        question="报损怎么申请",
         intent_result={"primary_intent": "POLICY"},
         slots={},
     )

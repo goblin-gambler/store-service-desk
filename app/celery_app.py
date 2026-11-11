@@ -1,6 +1,6 @@
 # app/celery_app.py
 """Celery 异步任务系统
-处理短信发送、退款网关调用等耗时操作
+处理记忆抽取、审批通知、知识同步、告警巡检等耗时操作
 """
 
 from celery import Celery

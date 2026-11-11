@@ -62,7 +62,7 @@ class TestBackgroundTaskLatency:
                     variant_id=None,
                     total_latency_ms=100,
                     langsmith_run_url=None,
-                    intent_category="ORDER",
+                    intent_category="STORE",
                     query_text="test",
                     variant_llm_model=None,
                 )

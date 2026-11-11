@@ -508,11 +508,11 @@ class AlertService:
         payload = {
             "routing_key": routing_key,
             "event_action": "trigger",
-            "dedup_key": f"ecommerce-agent-{event.name}-{event.rule_id}",
+            "dedup_key": f"store-service-desk-{event.name}-{event.rule_id}",
             "payload": {
                 "summary": f"[{event.severity.value}] {event.name}: {event.message}",
                 "severity": _map_to_pagerduty_severity(event.severity),
-                "source": "ecommerce-smart-agent",
+                "source": "store-service-desk",
                 "custom_details": {
                     "metric_value": event.metric_value,
                     "threshold": event.threshold,
@@ -544,8 +544,8 @@ class AlertService:
         payload = {
             "message": f"[{event.severity.value}] {event.name}: {event.message}",
             "priority": _map_to_opsgenie_priority(event.severity),
-            "alias": f"ecommerce-agent-{event.name}-{event.rule_id}",
-            "source": "ecommerce-smart-agent",
+            "alias": f"store-service-desk-{event.name}-{event.rule_id}",
+            "source": "store-service-desk",
             "details": {
                 "metric_value": event.metric_value,
                 "threshold": event.threshold,
@@ -764,11 +764,11 @@ class AlertService:
         payload = {
             "routing_key": routing_key,
             "event_action": "trigger",
-            "dedup_key": f"ecommerce-agent-{event.name}-{event.rule_id}",
+            "dedup_key": f"store-service-desk-{event.name}-{event.rule_id}",
             "payload": {
                 "summary": f"[{event.severity.value}] {event.name}: {event.message}",
                 "severity": _map_to_pagerduty_severity(event.severity),
-                "source": "ecommerce-smart-agent",
+                "source": "store-service-desk",
                 "custom_details": {
                     "metric_value": event.metric_value,
                     "threshold": event.threshold,
@@ -804,8 +804,8 @@ class AlertService:
         payload = {
             "message": f"[{event.severity.value}] {event.name}: {event.message}",
             "priority": _map_to_opsgenie_priority(event.severity),
-            "alias": f"ecommerce-agent-{event.name}-{event.rule_id}",
-            "source": "ecommerce-smart-agent",
+            "alias": f"store-service-desk-{event.name}-{event.rule_id}",
+            "source": "store-service-desk",
             "details": {
                 "metric_value": event.metric_value,
                 "threshold": event.threshold,

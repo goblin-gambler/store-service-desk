@@ -6,8 +6,6 @@ from app.core.database import async_session_maker
 from app.core.security import create_access_token
 from app.models.audit import AuditAction, AuditLog, AuditTriggerType, RiskLevel
 from app.models.observability import GraphExecutionLog, GraphNodeLog
-from app.models.order import Order, OrderStatus
-from app.models.refund import RefundApplication, RefundStatus
 from app.models.user import User
 from tests.test_admin_api import create_admin_user, create_regular_user
 
@@ -15,7 +13,7 @@ from tests.test_admin_api import create_admin_user, create_regular_user
 async def create_graph_execution_log(
     thread_id: str,
     user_id: int,
-    final_agent: str = "order_agent",
+    final_agent: str = "store_agent",
     confidence_score: float = 0.85,
     needs_human_transfer: bool = False,
     total_latency_ms: int = 1200,
@@ -69,36 +67,6 @@ async def create_audit_log_for_confidence(user: User) -> AuditLog:
         await session.commit()
         await session.refresh(log)
         return log
-
-
-async def create_order_and_refund(user: User) -> tuple[Order, RefundApplication]:
-    from decimal import Decimal
-
-    async with async_session_maker() as session:
-        order = Order(
-            order_sn=f"ORD{uuid.uuid4().hex[:12].upper()}",
-            user_id=user.id or 0,
-            status=OrderStatus.DELIVERED,
-            total_amount=Decimal("199.99"),
-            items=[{"name": "Test Item", "price": 199.99}],
-            shipping_address="Test Address",
-        )
-        session.add(order)
-        await session.commit()
-        await session.refresh(order)
-        assert order.id is not None
-
-        refund = RefundApplication(
-            order_id=order.id,
-            user_id=user.id or 0,
-            status=RefundStatus.PENDING,
-            reason_detail="Test refund",
-            refund_amount=Decimal("199.99"),
-        )
-        session.add(refund)
-        await session.commit()
-        await session.refresh(refund)
-        return order, refund
 
 
 @pytest.mark.asyncio
@@ -169,13 +137,13 @@ async def test_get_transfer_metrics(client):
     await create_graph_execution_log(
         thread_id=f"thread_{uuid.uuid4().hex[:8]}",
         user_id=user.id or 0,
-        final_agent="order_agent",
+        final_agent="store_agent",
         needs_human_transfer=True,
     )
     await create_graph_execution_log(
         thread_id=f"thread_{uuid.uuid4().hex[:8]}",
         user_id=user.id or 0,
-        final_agent="order_agent",
+        final_agent="store_agent",
         needs_human_transfer=False,
     )
 
@@ -187,11 +155,11 @@ async def test_get_transfer_metrics(client):
     data = response.json()
     assert isinstance(data, list)
     agents = [m["final_agent"] for m in data]
-    assert "order_agent" in agents
-    order_metric = next(m for m in data if m["final_agent"] == "order_agent")
-    assert order_metric["total"] >= 2
-    assert order_metric["transfers"] >= 1
-    assert "transfer_rate" in order_metric
+    assert "store_agent" in agents
+    store_metric = next(m for m in data if m["final_agent"] == "store_agent")
+    assert store_metric["total"] >= 2
+    assert store_metric["transfers"] >= 1
+    assert "transfer_rate" in store_metric
 
 
 @pytest.mark.asyncio

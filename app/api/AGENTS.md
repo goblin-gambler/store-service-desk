@@ -44,8 +44,8 @@ Note: WebSocket routes (`@app/api/v1/websocket.py`) are the FastAPI entrypoints 
 
 ```bash
 # Run API tests
-uv run pytest tests/test_chat_api.py tests/test_auth_api.py tests/test_admin_api.py
-uv run pytest tests/api/
+uv run python -m pytest tests/test_chat_api.py tests/test_auth_api.py tests/test_admin_api.py
+uv run python -m pytest tests/api/
 ```
 
 ## Code Style

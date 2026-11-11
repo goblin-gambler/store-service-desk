@@ -26,7 +26,7 @@ class NoOpSpanExporter(SpanExporter):
         return True
 
 
-def setup_otel_tracing(service_name: str = "ecommerce-smart-agent") -> TracerProvider:
+def setup_otel_tracing(service_name: str = "store-service-desk") -> TracerProvider:
     """Configure OpenTelemetry tracing with OTLP or no-op export."""
     resource = Resource.create({"service.name": service_name})
     provider = TracerProvider(resource=resource)

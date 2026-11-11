@@ -1,7 +1,7 @@
 # app/models/message.py
 """
-v4.0 新增：结构化消息模型
-支持富媒体卡片渲染（audit_card, order_card, text）
+结构化消息模型
+支持富媒体卡片渲染（audit_card, confidence_card, transfer_card, text）
 """
 
 from datetime import datetime
@@ -19,8 +19,6 @@ class MessageType(str, Enum):
 
     TEXT = "text"  # 普通文本消息
     AUDIT_CARD = "audit_card"  # 人工审核卡片
-    ORDER_CARD = "order_card"  # 订单信息卡片
-    REFUND_CARD = "refund_card"  # 退款进度卡片
     SYSTEM = "system"  # 系统通知
     CONFIDENCE_CARD = "confidence_card"  # 置信度信息卡片 (v4.1新增)
     TRANSFER_CARD = "transfer_card"  # 转人工信息卡片 (v4.1新增)

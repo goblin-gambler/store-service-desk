@@ -9,8 +9,6 @@ class AuditTask(BaseModel):
     audit_log_id: int
     thread_id: str
     user_id: int
-    refund_application_id: int | None
-    order_id: int | None
     trigger_reason: str
     risk_level: str
     context_snapshot: dict[str, Any]

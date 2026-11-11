@@ -11,8 +11,6 @@ from app.models.audit import AuditAction, AuditLog, AuditTriggerType, RiskLevel
 from app.models.loss import LossReport, LossStatus
 from app.models.message import MessageCard, MessageType
 from app.models.observability import GraphExecutionLog
-from app.models.order import Order, OrderStatus
-from app.models.refund import RefundApplication, RefundStatus
 from app.models.user import User
 
 
@@ -57,36 +55,6 @@ async def create_regular_user() -> User:
         return user
 
 
-async def create_order_and_refund(user: User) -> tuple[Order, RefundApplication]:
-    async with async_session_maker() as session:
-        assert user.id is not None
-        order = Order(
-            order_sn=f"ORD{uuid.uuid4().hex[:12].upper()}",
-            user_id=user.id,
-            status=OrderStatus.DELIVERED,
-            total_amount=Decimal("199.99"),
-            items=[{"name": "Test Item", "price": 199.99}],
-            shipping_address="Test Address",
-        )
-        session.add(order)
-        await session.commit()
-        await session.refresh(order)
-        assert order.id is not None
-
-        refund = RefundApplication(
-            order_id=order.id,
-            user_id=user.id,
-            status=RefundStatus.PENDING,
-            reason_detail="Test refund",
-            refund_amount=Decimal("199.99"),
-        )
-        session.add(refund)
-        await session.commit()
-        await session.refresh(refund)
-        assert refund.id is not None
-        return order, refund
-
-
 async def create_loss_report(user: User) -> LossReport:
     async with async_session_maker() as session:
         assert user.id is not None
@@ -110,8 +78,6 @@ async def create_loss_report(user: User) -> LossReport:
 
 async def create_audit_log(
     user: User,
-    order_id: int | None = None,
-    refund_application_id: int | None = None,
     action: AuditAction = AuditAction.PENDING,
     context_snapshot: dict | None = None,
 ) -> AuditLog:
@@ -121,8 +87,6 @@ async def create_audit_log(
         log = AuditLog(
             thread_id=thread_id,
             user_id=user.id,
-            order_id=order_id,
-            refund_application_id=refund_application_id,
             trigger_reason="Test audit",
             risk_level=RiskLevel.MEDIUM,
             action=action,
@@ -158,8 +122,7 @@ async def create_message_cards(user: User, thread_id: str, count: int = 3) -> li
 async def test_get_admin_tasks_returns_pending_tasks_for_admin(client):
     _admin, token = await create_admin_user()
     user = await create_regular_user()
-    order, refund = await create_order_and_refund(user)
-    audit_log = await create_audit_log(user, order_id=order.id, refund_application_id=refund.id)
+    audit_log = await create_audit_log(user)
 
     response = await client.get(
         "/api/v1/admin/tasks",
@@ -196,10 +159,7 @@ async def test_get_admin_tasks_rejects_missing_token(client):
 async def test_get_admin_tasks_all_returns_stats(client):
     _admin, token = await create_admin_user()
     user = await create_regular_user()
-    order, refund = await create_order_and_refund(user)
-    await create_audit_log(
-        user, order_id=order.id, refund_application_id=refund.id, action=AuditAction.PENDING
-    )
+    await create_audit_log(user, action=AuditAction.PENDING)
 
     response = await client.get(
         "/api/v1/admin/tasks-all",
@@ -322,10 +282,7 @@ async def test_admin_decision_returns_404_for_nonexistent_audit_log(client):
 async def test_admin_decision_returns_400_for_already_processed_audit_log(client):
     _admin, admin_token = await create_admin_user()
     user = await create_regular_user()
-    order, refund = await create_order_and_refund(user)
-    audit_log = await create_audit_log(
-        user, order_id=order.id, refund_application_id=refund.id, action=AuditAction.APPROVE
-    )
+    audit_log = await create_audit_log(user, action=AuditAction.APPROVE)
 
     response = await client.post(
         f"/api/v1/admin/resume/{audit_log.id}",
@@ -340,10 +297,7 @@ async def test_admin_decision_returns_400_for_already_processed_audit_log(client
 async def test_admin_decision_rejects_non_admin_token(client):
     user = await create_regular_user()
     assert user.id is not None
-    order, refund = await create_order_and_refund(user)
-    audit_log = await create_audit_log(
-        user, order_id=order.id, refund_application_id=refund.id, action=AuditAction.PENDING
-    )
+    audit_log = await create_audit_log(user, action=AuditAction.PENDING)
     token = create_access_token(user_id=user.id or 0, is_admin=False)
 
     response = await client.post(
@@ -408,7 +362,7 @@ async def test_get_conversations_filters_by_intent_category(client):
         log1 = GraphExecutionLog(
             thread_id=thread1,
             user_id=user.id or 0,
-            intent_category="ORDER",
+            intent_category="STORE",
         )
         log2 = GraphExecutionLog(
             thread_id=thread2,
@@ -420,7 +374,7 @@ async def test_get_conversations_filters_by_intent_category(client):
         await session.commit()
 
     response = await client.get(
-        "/api/v1/admin/conversations?intent_category=ORDER",
+        "/api/v1/admin/conversations?intent_category=STORE",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200

@@ -72,8 +72,6 @@ logs/
 # Data files (except examples)
 data/*.pdf
 data/*.md
-!data/shipping_policy.md
-!data/return_policy.md
 
 # Model checkpoints and large files
 *.pkl

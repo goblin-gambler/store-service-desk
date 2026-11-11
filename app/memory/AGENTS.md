@@ -38,7 +38,7 @@ The memory system provides persistent, multi-tier memory for the agent:
 
 ```bash
 # Run memory system tests
-uv run pytest tests/memory/
+uv run python -m pytest tests/memory/
 ```
 
 ## Code Style

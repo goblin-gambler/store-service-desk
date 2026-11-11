@@ -56,13 +56,13 @@ def test_policy_system_prompt_requires_citation():
 
 @pytest.mark.asyncio
 async def test_policy_agent_uses_retriever(mock_load_config):
-    results = [_Result("退换货政策内容", "policy.md", 0.95)]
+    results = [_Result("报损政策内容", "policy.md", 0.95)]
     retriever = DeterministicRetriever(results=results)
     agent = PolicyAgent(retriever=retriever, llm=_make_self_rag_llm())
 
-    state = make_agent_state(question="怎么退货")
+    state = make_agent_state(question="怎么报损")
     data = await agent._retrieve_knowledge(state)
-    assert data["chunks"] == ["退换货政策内容"]
+    assert data["chunks"] == ["报损政策内容"]
     assert data["similarities"] == [pytest.approx(0.95)]
     assert data["sources"] == ["policy.md"]
     assert data["self_rag"].retrieval_adequacy == "yes"
@@ -73,13 +73,13 @@ async def test_policy_agent_uses_retriever(mock_load_config):
 async def test_process_with_rag_context(mock_load_config):
     retriever = DeterministicRetriever(
         results=[
-            _Result("运费满100免运费", "policy_doc_1", 0.8),
+            _Result("报损金额超过200元需店长审批", "policy_doc_1", 0.8),
             _Result("配送时效1-3天", "policy_doc_2", 0.75),
         ]
     )
     llm = DeterministicChatModel(
         responses=[
-            (["运费", "配送", "政策"], "运费满100元免运费，配送时效为1-3天。[来源: policy_doc_1]"),
+            (["报损", "配送", "政策"], "报损金额超过200元需店长审批，配送时效为1-3天。[来源: policy_doc_1]"),
         ],
         structured={
             "RetrievalAdequacy": {"adequacy": "yes", "confidence": 0.9, "reason": "test"},
@@ -98,12 +98,12 @@ async def test_process_with_rag_context(mock_load_config):
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
 
-    state = make_agent_state(question="运费怎么算？", user_id=1)
+    state = make_agent_state(question="报损怎么申请？", user_id=1)
     result = await agent.process(state)
 
-    assert "运费" in result["response"]
+    assert "报损" in result["response"]
     assert result["updated_state"]["retrieval_result"]["chunks"] == [
-        "运费满100免运费",
+        "报损金额超过200元需店长审批",
         "配送时效1-3天",
     ]
     self_rag = result["updated_state"]["self_rag"]
@@ -149,7 +149,7 @@ async def test_retrieve_knowledge_filters_low_score_chunks(mock_load_config):
             ]
 
     agent = PolicyAgent(retriever=LowScoreRetriever(), llm=_make_self_rag_llm())
-    state = make_agent_state(question="运费政策", user_id=1)
+    state = make_agent_state(question="报损政策", user_id=1)
     data = await agent._retrieve_knowledge(state)
     assert "低相关" not in data["chunks"]
     assert len(data["chunks"]) == 2
@@ -170,7 +170,7 @@ async def test_retrieve_knowledge_returns_empty_when_grader_rejects_all(mock_loa
 
     llm = DeterministicChatModel(structured={"GradeDocuments": {"binary_score": "no"}})
     agent = PolicyAgent(retriever=OneResultRetriever(), llm=llm)
-    state = make_agent_state(question="退换货", user_id=1)
+    state = make_agent_state(question="报损", user_id=1)
     data = await agent._retrieve_knowledge(state)
     assert data["chunks"] == []
     assert data["self_rag"].fallback_triggered is True
@@ -191,7 +191,7 @@ async def test_process_self_rag_refusal_when_no_relevant_docs(mock_load_config):
 
     llm = DeterministicChatModel(structured={"GradeDocuments": {"binary_score": "no"}})
     agent = PolicyAgent(retriever=OneResultRetriever(), llm=llm)
-    state = make_agent_state(question="运费政策", user_id=1)
+    state = make_agent_state(question="报损政策", user_id=1)
     result = await agent.process(state)
     assert "抱歉" in result["response"] or "暂未查询" in result["response"]
     self_rag = result["updated_state"]["self_rag"]
@@ -201,11 +201,11 @@ async def test_process_self_rag_refusal_when_no_relevant_docs(mock_load_config):
 @pytest.mark.asyncio
 async def test_self_rag_adequate_retrieval(mock_load_config):
     retriever = DeterministicRetriever(
-        results=[_Result("退换货政策: 7天无理由退货", "policy.md", 0.9)]
+        results=[_Result("报损政策: 临期商品可报损", "policy.md", 0.9)]
     )
     llm = DeterministicChatModel(
         responses=[
-            (["退换货", "7天"], "支持7天无理由退货。[来源: policy.md]"),
+            (["报损", "7天"], "支持临期商品可报损。[来源: policy.md]"),
         ],
         structured={
             "RetrievalAdequacy": {"adequacy": "yes", "confidence": 0.95, "reason": "Sufficient"},
@@ -223,7 +223,7 @@ async def test_self_rag_adequate_retrieval(mock_load_config):
         },
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
-    state = make_agent_state(question="怎么退货？", user_id=1)
+    state = make_agent_state(question="怎么报损？", user_id=1)
     result = await agent.process(state)
 
     assert "7天" in result["response"]
@@ -246,7 +246,7 @@ async def test_self_rag_inadequate_retrieval(mock_load_config):
         }
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
-    state = make_agent_state(question="复杂的国际运费政策是什么？", user_id=1)
+    state = make_agent_state(question="跨区域调拨的报损政策是什么？", user_id=1)
     result = await agent.process(state)
 
     assert result["response"] == _FALLBACK_RESPONSE
@@ -258,7 +258,7 @@ async def test_self_rag_inadequate_retrieval(mock_load_config):
 
 @pytest.mark.asyncio
 async def test_self_rag_partial_retrieval_with_fallback(mock_load_config):
-    retriever = DeterministicRetriever(results=[_Result("部分运费信息", "doc1", 0.7)])
+    retriever = DeterministicRetriever(results=[_Result("部分报损信息", "doc1", 0.7)])
     llm = DeterministicChatModel(
         structured={
             "GradeDocuments": {"binary_score": "yes"},
@@ -270,7 +270,7 @@ async def test_self_rag_partial_retrieval_with_fallback(mock_load_config):
         }
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
-    state = make_agent_state(question="详细运费政策？", user_id=1)
+    state = make_agent_state(question="详细报损政策？", user_id=1)
     result = await agent.process(state)
 
     assert result["response"] == _FALLBACK_RESPONSE
@@ -281,10 +281,10 @@ async def test_self_rag_partial_retrieval_with_fallback(mock_load_config):
 
 @pytest.mark.asyncio
 async def test_self_rag_partial_retrieval_without_fallback(mock_load_config):
-    retriever = DeterministicRetriever(results=[_Result("部分运费信息", "doc1", 0.7)])
+    retriever = DeterministicRetriever(results=[_Result("部分报损信息", "doc1", 0.7)])
     llm = DeterministicChatModel(
         responses=[
-            (["运费"], "运费满100免运费。[来源: doc1]"),
+            (["报损"], "报损金额超过200元需店长审批。[来源: doc1]"),
         ],
         structured={
             "GradeDocuments": {"binary_score": "yes"},
@@ -307,10 +307,10 @@ async def test_self_rag_partial_retrieval_without_fallback(mock_load_config):
         },
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
-    state = make_agent_state(question="运费怎么算？", user_id=1)
+    state = make_agent_state(question="报损怎么申请？", user_id=1)
     result = await agent.process(state)
 
-    assert "运费" in result["response"]
+    assert "报损" in result["response"]
     self_rag = result["updated_state"]["self_rag"]
     assert self_rag["retrieval_adequacy"] == "partial"
     assert self_rag["fallback_triggered"] is False
@@ -319,10 +319,10 @@ async def test_self_rag_partial_retrieval_without_fallback(mock_load_config):
 
 @pytest.mark.asyncio
 async def test_self_rag_citation_enforcement(mock_load_config):
-    retriever = DeterministicRetriever(results=[_Result("退换货政策内容", "policy.md", 0.9)])
+    retriever = DeterministicRetriever(results=[_Result("报损政策内容", "policy.md", 0.9)])
     llm = DeterministicChatModel(
         responses=[
-            (["政策"], "根据政策，支持7天无理由退货。[来源: policy.md]"),
+            (["政策"], "根据政策，支持临期商品可报损。[来源: policy.md]"),
         ],
         structured={
             "RetrievalAdequacy": {"adequacy": "yes", "confidence": 0.9, "reason": "test"},
@@ -340,7 +340,7 @@ async def test_self_rag_citation_enforcement(mock_load_config):
         },
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
-    state = make_agent_state(question="退货政策是什么？", user_id=1)
+    state = make_agent_state(question="报损政策是什么？", user_id=1)
     result = await agent.process(state)
 
     self_rag = result["updated_state"]["self_rag"]
@@ -350,10 +350,10 @@ async def test_self_rag_citation_enforcement(mock_load_config):
 
 @pytest.mark.asyncio
 async def test_self_rag_missing_citations_detected(mock_load_config):
-    retriever = DeterministicRetriever(results=[_Result("退换货政策内容", "policy.md", 0.9)])
+    retriever = DeterministicRetriever(results=[_Result("报损政策内容", "policy.md", 0.9)])
     llm = DeterministicChatModel(
         responses=[
-            (["政策"], "根据政策，支持7天无理由退货。"),
+            (["政策"], "根据政策，支持临期商品可报损。"),
         ],
         structured={
             "RetrievalAdequacy": {"adequacy": "yes", "confidence": 0.9, "reason": "test"},
@@ -371,7 +371,7 @@ async def test_self_rag_missing_citations_detected(mock_load_config):
         },
     )
     agent = PolicyAgent(retriever=retriever, llm=llm)
-    state = make_agent_state(question="退货政策是什么？", user_id=1)
+    state = make_agent_state(question="报损政策是什么？", user_id=1)
     result = await agent.process(state)
 
     self_rag = result["updated_state"]["self_rag"]
@@ -403,8 +403,8 @@ async def test_self_rag_result_model():
 def real_policy_agent(real_llm):
     retriever = DeterministicRetriever(
         results=[
-            _Result("退换货政策: 7天无理由退货", "policy.md", 0.9),
-            _Result("运费政策: 满100元免运费", "shipping.md", 0.85),
+            _Result("报损政策: 临期商品可报损", "policy.md", 0.9),
+            _Result("报损政策: 超过200元需店长审批", "shipping.md", 0.85),
         ]
     )
     return PolicyAgent(retriever=retriever, llm=real_llm)
@@ -413,7 +413,7 @@ def real_policy_agent(real_llm):
 @pytest.mark.requires_llm
 @pytest.mark.asyncio
 async def test_real_llm_policy_agent(real_policy_agent, mock_load_config):
-    state = make_agent_state(question="怎么退货？", user_id=1)
+    state = make_agent_state(question="怎么报损？", user_id=1)
     result = await real_policy_agent.process(state)
     assert isinstance(result["response"], str)
     assert len(result["response"]) > 0
@@ -422,7 +422,7 @@ async def test_real_llm_policy_agent(real_policy_agent, mock_load_config):
 @pytest.mark.requires_llm
 @pytest.mark.asyncio
 async def test_real_llm_policy_agent_shipping(real_policy_agent, mock_load_config):
-    state = make_agent_state(question="运费怎么算？", user_id=1)
+    state = make_agent_state(question="报损怎么申请？", user_id=1)
     result = await real_policy_agent.process(state)
     assert isinstance(result["response"], str)
     assert len(result["response"]) > 0

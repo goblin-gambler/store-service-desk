@@ -36,7 +36,7 @@ Multi-layer output content moderation system that filters agent responses before
 
 ```bash
 # Run safety module tests
-uv run pytest tests/safety/
+uv run python -m pytest tests/safety/
 ```
 
 ## Code Style

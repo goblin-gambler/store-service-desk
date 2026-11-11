@@ -3,7 +3,7 @@
   "uid": "cost-optimization",
   "title": "Cost Optimization",
   "tags": [
-    "ecommerce",
+    "store",
     "agent",
     "cost"
   ],
@@ -40,7 +40,7 @@
           "type": "loki",
           "uid": "loki"
         },
-        "expr": "{app=\"ecommerce-agent\"} |= \"trace_id=\"",
+        "expr": "{app=\"store-service-desk\"} |= \"trace_id=\"",
         "iconColor": "blue",
         "tags": ["trace"],
         "type": "tags"

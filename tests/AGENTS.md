@@ -27,7 +27,7 @@ Backend test suite using pytest + pytest-asyncio with a flat directory structure
 | Agent mock | `@tests/_agents.py` | Agent mock factory and test helpers |
 | LLM mock | `@tests/_llm.py` | LLM call mocks and response helpers |
 | API tests | `@tests/test_auth_api.py`, `@tests/test_chat_api.py`, `@tests/test_admin_api.py` | Route-layer validation |
-| Service tests | `@tests/test_order_service.py`, `@tests/test_refund_service.py`, `@tests/test_auth_service.py`, `@tests/test_status_service.py`, `@tests/test_admin_service.py` | Business logic validation |
+| Service tests | `@tests/test_auth_service.py`, `@tests/test_status_service.py`, `@tests/test_admin_service.py` | Business logic validation |
 | Module unit tests | `@tests/agents/`, `@tests/graph/`, `@tests/intent/`, `@tests/memory/`, `@tests/tools/`, `@tests/retrieval/`, `@tests/evaluation/`, `@tests/context/`, `@tests/observability/`, `@tests/core/`, `@tests/models/`, `@tests/performance/` | Agent/graph/intent/memory/RAG/evaluation/context/observability/core/model/performance tests |
 | Graph module tests | `@tests/graph/test_checkpointer.py`, `@tests/graph/test_memory_integration.py`, `@tests/graph/test_parallel.py`, `@tests/graph/test_subgraphs.py`, `@tests/graph/test_workflow.py` | Checkpointer, memory integration, parallel dispatch, subgraph, and workflow compiler tests |
 | Context module tests | `@tests/context/test_pii_filter.py`, `@tests/context/test_token_budget.py` | PII filtering and token budget tests |
@@ -46,7 +46,7 @@ Backend test suite using pytest + pytest-asyncio with a flat directory structure
 | Evaluation tests | `@tests/test_evaluation_tasks.py`, `@tests/test_online_eval_service.py` | Evaluation system tests |
 | Knowledge tests | `@tests/test_knowledge_tasks.py` | Knowledge base task tests |
 | Notification tests | `@tests/test_notifications_tasks.py` | Notification task tests |
-| Refund task tests | `@tests/test_refund_tasks.py` | Refund workflow task tests |
+| Audit task tests | `@tests/test_audit_tasks.py` | Admin audit notification task tests |
 | Prompt effect tests | `@tests/test_prompt_effect_tasks.py` | Prompt effect tracking tests |
 | Observability API tests | `@tests/test_observability_api.py` | Observability endpoint tests |
 | Reranker mock | `@tests/_reranker.py` | Reranker mock helpers |
@@ -56,23 +56,23 @@ Backend test suite using pytest + pytest-asyncio with a flat directory structure
 
 ```bash
 # All backend tests
-uv run pytest
+uv run python -m pytest
 
 # With coverage gate (CI requirement: --cov-fail-under=75)
-uv run pytest --cov=app --cov-fail-under=75
+uv run python -m pytest --cov=app --cov-fail-under=75
 
 # By module
-uv run pytest tests/agents/
-uv run pytest tests/graph/
-uv run pytest tests/intent/
-uv run pytest tests/memory/
-uv run pytest tests/evaluation/
-uv run pytest tests/context/
-uv run pytest tests/observability/
-uv run pytest tests/tasks/
-uv run pytest tests/admin/
-uv run pytest tests/services/
-uv run pytest tests/safety/
+uv run python -m pytest tests/agents/
+uv run python -m pytest tests/graph/
+uv run python -m pytest tests/intent/
+uv run python -m pytest tests/memory/
+uv run python -m pytest tests/evaluation/
+uv run python -m pytest tests/context/
+uv run python -m pytest tests/observability/
+uv run python -m pytest tests/tasks/
+uv run python -m pytest tests/admin/
+uv run python -m pytest tests/services/
+uv run python -m pytest tests/safety/
 ```
 
 ## Code Style

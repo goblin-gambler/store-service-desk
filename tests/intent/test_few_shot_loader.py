@@ -51,7 +51,7 @@ class TestLoadAgentExamples:
         for example in examples:
             assert "query" in example
             assert "primary_intent" in example
-            # 标签必须落在门店域枚举内，避免旧电商标签污染模型
+            # 标签必须落在门店域枚举内，避免旧业务标签污染模型
             primary = IntentCategory(example["primary_intent"])
             action = IntentAction(example["secondary_intent"])
             assert isinstance(primary, IntentCategory)

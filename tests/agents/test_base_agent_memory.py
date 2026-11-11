@@ -49,7 +49,7 @@ def test_create_messages_with_memory_context(agent):
             "structured_facts": [
                 {"fact_type": "preference", "content": "likes tech gadgets"},
             ],
-            "user_profile": {"membership_level": "gold", "total_orders": 10},
+            "user_profile": {"role_title": "店长", "employee_no": "E1001"},
             "relevant_past_messages": [
                 {"role": "user", "content": "iPhone 15"},
                 {"role": "assistant", "content": "great choice"},
@@ -59,8 +59,8 @@ def test_create_messages_with_memory_context(agent):
     assert len(messages) == 2
     content = messages[1].content
     assert "likes tech gadgets" in content
-    assert "membership_level" in content
-    assert "gold" in content
+    assert "role_title" in content
+    assert "店长" in content
     assert "iPhone 15" in content
     assert "Assistant: great choice" in content
     assert "[用户问题]:" in content

@@ -411,10 +411,6 @@ export function ComplaintQueue() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">关联单号</label>
-                  <p className="text-sm">{selectedTicket.order_sn || '无'}</p>
-                </div>
-                <div>
                   <label className="text-sm font-medium text-muted-foreground">用户ID</label>
                   <p className="text-sm">{selectedTicket.user_id}</p>
                 </div>

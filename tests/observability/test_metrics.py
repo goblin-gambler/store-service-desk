@@ -62,11 +62,11 @@ from app.observability.metrics import (
 class TestRecordChatRequest:
     def test_record_chat_request_with_labels(self):
         before = CHAT_REQUESTS_TOTAL.labels(
-            intent_category="ORDER", final_agent="order_agent"
+            intent_category="STORE", final_agent="store_agent"
         )._value.get()
-        record_chat_request(intent_category="ORDER", final_agent="order_agent")
+        record_chat_request(intent_category="STORE", final_agent="store_agent")
         after = CHAT_REQUESTS_TOTAL.labels(
-            intent_category="ORDER", final_agent="order_agent"
+            intent_category="STORE", final_agent="store_agent"
         )._value.get()
         assert after == before + 1
 
@@ -113,9 +113,9 @@ class TestRecordNodeLatency:
 
 class TestRecordTokenUsage:
     def test_record_token_usage(self):
-        before = TOKEN_USAGE_TOTAL.labels(agent="order_agent")._value.get()
-        record_token_usage(tokens=150, agent="order_agent")
-        after = TOKEN_USAGE_TOTAL.labels(agent="order_agent")._value.get()
+        before = TOKEN_USAGE_TOTAL.labels(agent="store_agent")._value.get()
+        record_token_usage(tokens=150, agent="store_agent")
+        after = TOKEN_USAGE_TOTAL.labels(agent="store_agent")._value.get()
         assert after == before + 150
 
     def test_record_token_usage_default(self):
@@ -156,8 +156,8 @@ class TestRecordConfidenceScore:
 
 class TestSetIntentAccuracy:
     def test_set_intent_accuracy(self):
-        set_intent_accuracy(0.92, intent_category="ORDER")
-        value = INTENT_ACCURACY.labels(intent_category="ORDER")._value.get()
+        set_intent_accuracy(0.92, intent_category="STORE")
+        value = INTENT_ACCURACY.labels(intent_category="STORE")._value.get()
         assert value == pytest.approx(0.92)
 
     def test_set_intent_accuracy_default(self):
@@ -182,8 +182,8 @@ class TestSetHallucinationRate:
 
 class TestRecordAgentContextTokens:
     def test_record_agent_context_tokens(self):
-        record_agent_context_tokens(tokens=512, agent_name="order_agent")
-        value = AGENT_CONTEXT_TOKENS.labels(agent_name="order_agent")._value.get()
+        record_agent_context_tokens(tokens=512, agent_name="store_agent")
+        value = AGENT_CONTEXT_TOKENS.labels(agent_name="store_agent")._value.get()
         assert value == pytest.approx(512)
 
     def test_record_agent_context_tokens_default_agent(self):
@@ -259,8 +259,8 @@ class TestExecutionLoggerIntegration:
                 session=db_session,
                 thread_id="t-metrics",
                 user_id=user.id,
-                intent_category="ORDER",
-                final_agent="order_agent",
+                intent_category="STORE",
+                final_agent="store_agent",
                 confidence_score=0.85,
                 needs_human_transfer=True,
                 total_latency_ms=1200,
@@ -268,11 +268,11 @@ class TestExecutionLoggerIntegration:
                 context_utilization=0.75,
             )
 
-            mock_req.assert_called_once_with(intent_category="ORDER", final_agent="order_agent")
+            mock_req.assert_called_once_with(intent_category="STORE", final_agent="store_agent")
             mock_conf.assert_called_once_with(0.85)
             mock_transfer.assert_called_once_with(reason="low_confidence")
             mock_ctx.assert_called_once_with(0.75)
-            mock_tok.assert_called_once_with(tokens=2048, agent="order_agent")
+            mock_tok.assert_called_once_with(tokens=2048, agent="store_agent")
 
 
 class TestLatencyTrackerIntegration:
@@ -315,8 +315,8 @@ class TestLatencyTrackerIntegration:
 
 class TestRecordAnswerCorrectness:
     def test_record_answer_correctness(self):
-        record_answer_correctness(agent_type="order_agent", score=0.95)
-        value = ANSWER_CORRECTNESS.labels(agent_type="order_agent")._value.get()
+        record_answer_correctness(agent_type="store_agent", score=0.95)
+        value = ANSWER_CORRECTNESS.labels(agent_type="store_agent")._value.get()
         assert value == pytest.approx(0.95)
 
     def test_record_answer_correctness_aggregates(self):
@@ -343,14 +343,14 @@ class TestObserveAgentLatency:
 
 class TestSetTokenEfficiency:
     def test_set_token_efficiency(self):
-        set_token_efficiency(agent="order_agent", ratio=0.72)
-        value = TOKEN_EFFICIENCY.labels(agent="order_agent")._value.get()
+        set_token_efficiency(agent="store_agent", ratio=0.72)
+        value = TOKEN_EFFICIENCY.labels(agent="store_agent")._value.get()
         assert value == pytest.approx(0.72)
 
     def test_set_token_efficiency_updates(self):
-        set_token_efficiency(agent="cart_agent", ratio=0.60)
-        set_token_efficiency(agent="cart_agent", ratio=0.80)
-        value = TOKEN_EFFICIENCY.labels(agent="cart_agent")._value.get()
+        set_token_efficiency(agent="store_agent", ratio=0.60)
+        set_token_efficiency(agent="store_agent", ratio=0.80)
+        value = TOKEN_EFFICIENCY.labels(agent="store_agent")._value.get()
         assert value == pytest.approx(0.80)
 
 
@@ -403,18 +403,18 @@ class TestRecordCacheMiss:
 
 class TestRecordHighCostRequest:
     def test_record_high_cost_request(self):
-        before = HIGH_COST_REQUESTS_TOTAL.labels(agent="order_agent")._value.get()
-        record_high_cost_request(agent="order_agent")
-        after = HIGH_COST_REQUESTS_TOTAL.labels(agent="order_agent")._value.get()
+        before = HIGH_COST_REQUESTS_TOTAL.labels(agent="store_agent")._value.get()
+        record_high_cost_request(agent="store_agent")
+        after = HIGH_COST_REQUESTS_TOTAL.labels(agent="store_agent")._value.get()
         assert after == before + 1
 
     def test_record_high_cost_request_multiple_agents(self):
-        before_order = HIGH_COST_REQUESTS_TOTAL.labels(agent="order_agent")._value.get()
-        before_cart = HIGH_COST_REQUESTS_TOTAL.labels(agent="cart_agent")._value.get()
-        record_high_cost_request(agent="order_agent")
-        record_high_cost_request(agent="cart_agent")
-        assert HIGH_COST_REQUESTS_TOTAL.labels(agent="order_agent")._value.get() == before_order + 1
-        assert HIGH_COST_REQUESTS_TOTAL.labels(agent="cart_agent")._value.get() == before_cart + 1
+        before_order = HIGH_COST_REQUESTS_TOTAL.labels(agent="store_agent")._value.get()
+        before_store = HIGH_COST_REQUESTS_TOTAL.labels(agent="store_agent")._value.get()
+        record_high_cost_request(agent="store_agent")
+        record_high_cost_request(agent="store_agent")
+        assert HIGH_COST_REQUESTS_TOTAL.labels(agent="store_agent")._value.get() == before_order + 1
+        assert HIGH_COST_REQUESTS_TOTAL.labels(agent="store_agent")._value.get() == before_store + 1
 
 
 class TestRecordSafetyBlock:

@@ -36,10 +36,10 @@ async def test_create_ticket_with_defaults(complaint_tool: ComplaintTool, db_ses
         result = await complaint_tool.create_ticket(
             user_id=user.id,
             thread_id="thread-1",
-            category="PRODUCT_DEFECT",
+            category="FOOD_SAFETY",
             urgency="HIGH",
-            description="Broken item",
-            expected_resolution="REFUND",
+            description="鲜奶临期未及时下架",
+            expected_resolution="COMPENSATION",
         )
     assert result["ticket_id"] is not None
     assert result["user_id"] == user.id
@@ -69,7 +69,6 @@ async def test_create_ticket_normalizes_invalid_enums(complaint_tool: ComplaintT
             urgency="UNKNOWN_URGENCY",
             description="Something",
             expected_resolution="UNKNOWN_RESOLUTION",
-            order_sn="ORDER123",
         )
     assert result["status"] == "open"
 
@@ -89,4 +88,3 @@ async def test_create_ticket_normalizes_invalid_enums(complaint_tool: ComplaintT
     assert ticket.category == ComplaintCategory.OTHER.value
     assert ticket.urgency == ComplaintUrgency.MEDIUM.value
     assert ticket.expected_resolution == ExpectedResolution.APOLOGY.value
-    assert ticket.order_sn == "ORDER123"

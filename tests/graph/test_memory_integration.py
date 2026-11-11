@@ -38,11 +38,11 @@ async def test_memory_node_routes_to_supervisor(db_session, qdrant_client):
 
     profile = UserProfile(
         user_id=user.id,
-        membership_level="gold",
+        employee_no="E1001",
+        store_code="ST1001",
+        role_title="店长",
         preferred_language="zh",
         timezone="Asia/Shanghai",
-        total_orders=5,
-        lifetime_value=1000.0,
     )
     db_session.add(profile)
 
@@ -86,7 +86,7 @@ async def test_memory_node_routes_to_supervisor(db_session, qdrant_client):
     assert result.goto == "supervisor_node"
     assert result.update is not None
     assert "memory_context" in result.update
-    assert result.update["memory_context"]["user_profile"]["membership_level"] == "gold"
+    assert result.update["memory_context"]["user_profile"]["role_title"] == "店长"
     assert len(result.update["memory_context"]["structured_facts"]) == 1
     assert len(result.update["memory_context"]["relevant_past_messages"]) == 1
 

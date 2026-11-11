@@ -1,33 +1,18 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlmodel import SQLModel
 
-from alembic import context
+# 导入模型包以确保 SQLModel.metadata 注册全部表
+import app.models  # noqa: F401
 
 # 1. 引入配置和模型
 from app.core.config import settings
-from sqlmodel import SQLModel
 
-# 导入所有模型以确保被注册
-from app.models.order import Order
-from app.models.refund import RefundApplication
-from app.models.audit import AuditLog
-from app.models.message import MessageCard
-from app.models.user import User
-from app.models.knowledge_document import KnowledgeDocument
-from app.models.loss import LossReport
-from app.models.observability import GraphExecutionLog, GraphNodeLog, SupervisorDecision
-from app.models.memory import (
-    AgentConfig,
-    InteractionSummary,
-    RoutingRule,
-    UserFact,
-    UserPreference,
-    UserProfile,
-)
 # ==========================================
 
 config = context.config

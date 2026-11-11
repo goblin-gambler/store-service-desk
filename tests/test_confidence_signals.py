@@ -152,9 +152,9 @@ class TestCalculateLLMSignalRealLLM:
     @pytest.mark.asyncio
     async def test_real_llm_calculate_llm_signal(self, real_llm):
         result = await calculate_llm_signal(
-            query="退换货政策是什么？",
-            context=["退换货政策: 7天无理由退货"],
-            generated_answer="我们支持7天无理由退货。",
+            query="报损政策是什么？",
+            context=["报损政策: 临期商品可报损"],
+            generated_answer="我们支持临期商品可报损。",
             llm=real_llm,
         )
         assert 0.0 <= result.score <= 1.0

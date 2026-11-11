@@ -10,11 +10,11 @@ class DummyAgent(BaseAgent):
 
 def test_render_prompt_with_string_variable():
     result = render_prompt("Hello {{company_name}}", {})
-    assert result == "Hello XX电商平台"
+    assert result == "Hello 连锁零售门店"
 
 
 def test_render_prompt_with_non_callable_non_string_value():
-    result = render_prompt("Level: {{user_membership_level}}", {"user_membership_level": 42})
+    result = render_prompt("Level: {{user_role_title}}", {"user_role_title": 42})
     assert result == "Level: 42"
 
 

@@ -37,7 +37,7 @@ Offline evaluation framework for assessing agent response quality, hallucination
 
 ```bash
 # Run evaluation module tests
-uv run pytest tests/evaluation/
+uv run python -m pytest tests/evaluation/
 ```
 
 ## Code Style

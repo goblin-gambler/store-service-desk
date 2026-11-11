@@ -12,8 +12,8 @@ from tests.test_admin_api import create_admin_user, create_regular_user
 async def create_graph_execution_log(
     thread_id: str,
     user_id: int,
-    intent_category: str = "ORDER",
-    final_agent: str = "order_agent",
+    intent_category: str = "STORE",
+    final_agent: str = "store_agent",
     confidence_score: float = 0.85,
     needs_human_transfer: bool = False,
     total_latency_ms: int = 1200,
@@ -35,7 +35,7 @@ async def create_graph_execution_log(
 
 
 async def create_complaint_ticket(
-    user_id: int, category: str = "product_defect"
+    user_id: int, category: str = "service"
 ) -> ComplaintTicket:
     async with async_session_maker() as session:
         ticket = ComplaintTicket(
@@ -43,7 +43,7 @@ async def create_complaint_ticket(
             thread_id=f"thread_{uuid.uuid4().hex[:8]}",
             category=category,
             description="Test complaint",
-            expected_resolution="refund",
+            expected_resolution="investigation",
         )
         session.add(ticket)
         await session.commit()
@@ -89,7 +89,7 @@ async def test_get_complaint_root_causes(client):
     _admin, token = await create_admin_user()
     user = await create_regular_user()
     await create_complaint_ticket(user.id or 0, category="service")
-    await create_complaint_ticket(user.id or 0, category="logistics")
+    await create_complaint_ticket(user.id or 0, category="supply")
 
     response = await client.get(
         "/api/v1/admin/analytics/complaint-root-causes",
@@ -100,7 +100,7 @@ async def test_get_complaint_root_causes(client):
     assert isinstance(data, list)
     categories = {item["category"] for item in data}
     assert "service" in categories
-    assert "logistics" in categories
+    assert "supply" in categories
 
 
 @pytest.mark.asyncio
@@ -123,13 +123,13 @@ async def test_get_agent_comparison(client):
     await create_graph_execution_log(
         thread_id=thread_id,
         user_id=user.id or 0,
-        final_agent="order_agent",
+        final_agent="store_agent",
         needs_human_transfer=False,
     )
     await create_graph_execution_log(
         thread_id=f"thread_{uuid.uuid4().hex[:8]}",
         user_id=user.id or 0,
-        final_agent="order_agent",
+        final_agent="store_agent",
         intent_category="COMPLAINT",
         needs_human_transfer=True,
     )
@@ -142,11 +142,11 @@ async def test_get_agent_comparison(client):
     data = response.json()
     assert isinstance(data, list)
     agents = [item["final_agent"] for item in data]
-    assert "order_agent" in agents
-    order_item = next(item for item in data if item["final_agent"] == "order_agent")
-    assert order_item["total_sessions"] >= 2
-    assert order_item["complaint_count"] >= 1
-    assert 0.0 <= order_item["transfer_rate"] <= 1.0
+    assert "store_agent" in agents
+    store_item = next(item for item in data if item["final_agent"] == "store_agent")
+    assert store_item["total_sessions"] >= 2
+    assert store_item["complaint_count"] >= 1
+    assert 0.0 <= store_item["transfer_rate"] <= 1.0
 
 
 @pytest.mark.asyncio
@@ -169,7 +169,7 @@ async def test_list_traces(client):
     log = await create_graph_execution_log(
         thread_id=thread_id,
         user_id=user.id or 0,
-        final_agent="order_agent",
+        final_agent="store_agent",
     )
 
     response = await client.get(

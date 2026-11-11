@@ -16,7 +16,7 @@ export interface GrafanaPanelGridProps {
 }
 
 const dashboards: DashboardConfig[] = [
-  { uid: 'ecommerce-agent', title: '系统概览', icon: BarChart3 },
+  { uid: 'store-service-desk', title: '系统概览', icon: BarChart3 },
   { uid: 'agent-performance', title: '性能监控', icon: Gauge },
   { uid: 'cost-optimization', title: '成本优化', icon: DollarSign },
   { uid: 'security-monitoring', title: '安全监控', icon: ShieldCheck },

@@ -41,8 +41,8 @@ async def test_sample_conversations_basic(db_session):
         GraphExecutionLog(
             thread_id="t1",
             user_id=user_id,
-            intent_category="ORDER",
-            final_agent="order_agent",
+            intent_category="STORE",
+            final_agent="store_agent",
             confidence_score=0.8,
             needs_human_transfer=False,
             created_at=now - timedelta(hours=1),
@@ -59,8 +59,8 @@ async def test_sample_conversations_basic(db_session):
         GraphExecutionLog(
             thread_id="t3",
             user_id=user_id,
-            intent_category="ORDER",
-            final_agent="order_agent",
+            intent_category="STORE",
+            final_agent="store_agent",
             confidence_score=0.6,
             needs_human_transfer=True,
             created_at=now - timedelta(hours=3),
@@ -94,8 +94,8 @@ async def test_sample_conversations_stratified(db_session):
             GraphExecutionLog(
                 thread_id=f"order_{i}",
                 user_id=user_id,
-                intent_category="ORDER",
-                final_agent="order_agent",
+                intent_category="STORE",
+                final_agent="store_agent",
                 confidence_score=0.8,
                 needs_human_transfer=False,
                 created_at=now - timedelta(hours=i),
@@ -124,7 +124,7 @@ async def test_sample_conversations_stratified(db_session):
     assert batch.total_conversations >= 20
     assert batch.sample_size >= 4
 
-    order_samples = [s for s in batch.samples if s.intent_category == "ORDER"]
+    order_samples = [s for s in batch.samples if s.intent_category == "STORE"]
     policy_samples = [s for s in batch.samples if s.intent_category == "POLICY"]
     assert len(order_samples) >= 1
     assert len(policy_samples) >= 1
@@ -143,8 +143,8 @@ async def test_run_audit(db_session):
     log = GraphExecutionLog(
         thread_id="t1",
         user_id=user_id,
-        intent_category="ORDER",
-        final_agent="order_agent",
+        intent_category="STORE",
+        final_agent="store_agent",
         confidence_score=0.8,
         needs_human_transfer=False,
         created_at=now - timedelta(hours=1),

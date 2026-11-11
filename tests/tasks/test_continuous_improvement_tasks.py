@@ -29,8 +29,8 @@ class TestRunWeeklyAudit:
                     AuditSample(
                         thread_id="thread-1",
                         user_id=1,
-                        intent_category="ORDER",
-                        final_agent="order_agent",
+                        intent_category="STORE",
+                        final_agent="store_agent",
                         confidence_score=0.8,
                         needs_human_transfer=False,
                         created_at=datetime.now(UTC),

@@ -43,11 +43,11 @@ async def create_sample_token_logs(user: User) -> None:
             TokenUsageLog(
                 user_id=user.id,
                 thread_id="t1",
-                agent_type="order_agent",
+                agent_type="store_agent",
                 input_tokens=500,
                 output_tokens=300,
                 total_tokens=800,
-                query_text="查询订单",
+                query_text="查询门店",
                 model_name="qwen-plus",
                 created_at=now - timedelta(hours=2),
             ),
@@ -58,14 +58,14 @@ async def create_sample_token_logs(user: User) -> None:
                 input_tokens=1200,
                 output_tokens=800,
                 total_tokens=2000,
-                query_text="退货政策",
+                query_text="报损政策",
                 model_name="qwen-plus",
                 created_at=now - timedelta(hours=1),
             ),
             TokenUsageLog(
                 user_id=user.id,
                 thread_id="t3",
-                agent_type="order_agent",
+                agent_type="store_agent",
                 input_tokens=15000,
                 output_tokens=5000,
                 total_tokens=20000,
@@ -144,9 +144,9 @@ async def test_token_usage_by_agent(client: AsyncClient) -> None:
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 2  # order_agent + policy_agent
+    assert len(data) == 2  # store_agent + policy_agent
     agent_types = {item["agent_type"] for item in data}
-    assert "order_agent" in agent_types
+    assert "store_agent" in agent_types
     assert "policy_agent" in agent_types
 
 

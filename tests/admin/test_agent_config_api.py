@@ -89,7 +89,7 @@ async def test_list_agent_configs_rejects_non_admin(client):
 @pytest.mark.asyncio
 async def test_update_agent_config(client, redis_client):
     _admin, token = await create_admin_user()
-    agent_name = f"order_agent_{uuid.uuid4().hex[:8]}"
+    agent_name = f"store_agent_{uuid.uuid4().hex[:8]}"
     await create_agent_config(agent_name)
 
     cache_key = f"agent_config:{agent_name}"
@@ -134,7 +134,7 @@ async def test_update_agent_config_not_found(client):
 @pytest.mark.asyncio
 async def test_rollback_agent_config(client, redis_client):
     _admin, token = await create_admin_user()
-    agent_name = f"cart_agent_{uuid.uuid4().hex[:8]}"
+    agent_name = f"supply_agent_{uuid.uuid4().hex[:8]}"
     async with async_session_maker() as session:
         config = AgentConfig(
             agent_name=agent_name,
@@ -172,7 +172,7 @@ async def test_rollback_agent_config(client, redis_client):
 @pytest.mark.asyncio
 async def test_rollback_agent_config_no_previous(client):
     _admin, token = await create_admin_user()
-    agent_name = f"payment_agent_{uuid.uuid4().hex[:8]}"
+    agent_name = f"settlement_agent_{uuid.uuid4().hex[:8]}"
     await create_agent_config(agent_name)
 
     response = await client.post(
@@ -484,7 +484,7 @@ async def test_label_multi_intent_decision(client):
     async with async_session_maker() as session:
         log = MultiIntentDecisionLog(
             query="test query",
-            intent_a="ORDER",
+            intent_a="STORE",
             intent_b="POLICY",
             rule_based_result=True,
             llm_result=True,

@@ -32,7 +32,6 @@ class ComplaintTool(BaseTool):
         urgency: str,
         description: str,
         expected_resolution: str,
-        order_sn: str | None = None,
     ) -> dict[str, Any]:
         category = category.lower().strip()
         urgency = urgency.lower().strip()
@@ -56,7 +55,6 @@ class ComplaintTool(BaseTool):
                 urgency=urgency,
                 description=description,
                 expected_resolution=expected_resolution,
-                order_sn=order_sn,
                 status=ComplaintStatus.OPEN.value,
             )
             session.add(ticket)

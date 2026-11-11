@@ -20,13 +20,13 @@ Shared utility functions used across the application. Keep utilities stateless a
 
 | Role | File | Notes |
 |------|------|-------|
-| Order utilities | `@app/utils/order_utils.py` | Order-related helper functions |
+| Core utilities | `@app/core/utils.py` | Shared helpers such as `utc_now` and `build_thread_id` |
 
 ## Commands
 
 ```bash
-# Run utility tests
-uv run pytest tests/utils/
+# Run core utility tests
+uv run python -m pytest tests/core/
 ```
 
 ## Code Style

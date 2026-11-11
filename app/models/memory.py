@@ -14,11 +14,13 @@ class UserProfile(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True, description="用户 ID")
-    membership_level: str = Field(max_length=32, description="会员等级")
+    employee_no: str | None = Field(default=None, max_length=32, description="员工工号")
+    store_code: str | None = Field(
+        default=None, max_length=16, index=True, description="所属门店编号"
+    )
+    role_title: str = Field(default="店员", max_length=32, description="门店角色")
     preferred_language: str = Field(default="zh", max_length=10, description="偏好语言")
     timezone: str = Field(default="Asia/Shanghai", max_length=50, description="时区")
-    total_orders: int = Field(default=0, description="总订单数")
-    lifetime_value: float = Field(default=0.0, description="生命周期价值")
 
     created_at: datetime = Field(
         default_factory=utc_now,

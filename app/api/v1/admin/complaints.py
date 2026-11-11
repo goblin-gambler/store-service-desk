@@ -36,7 +36,6 @@ class ComplaintListResponse(BaseModel):
 
 
 class ComplaintDetailResponse(ComplaintTicketItem):
-    order_sn: str | None
     description: str
     expected_resolution: str
 
@@ -123,7 +122,6 @@ async def get_complaint(
         urgency=ticket.urgency,
         status=ticket.status,
         assigned_to=ticket.assigned_to,
-        order_sn=ticket.order_sn,
         description=ticket.description,
         expected_resolution=ticket.expected_resolution,
         created_at=ticket.created_at.isoformat() if ticket.created_at else "",

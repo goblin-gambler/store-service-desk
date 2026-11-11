@@ -36,7 +36,7 @@ class TestAlertRulesMigration:
 
     def test_grafana_alert_rules_file_exists(self) -> None:
         """Verify Grafana alert rules provisioning file exists."""
-        rules_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        rules_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         assert rules_file.exists(), f"Alert rules file not found: {rules_file}"
 
     def test_contact_points_yaml_valid(self) -> None:
@@ -108,7 +108,7 @@ class TestAlertRulesMigration:
 
     def test_alert_rules_yaml_valid(self) -> None:
         """Verify alert rules YAML is valid and has required structure."""
-        rules_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        rules_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         content = rules_file.read_text()
         data = yaml.safe_load(content)
 
@@ -122,7 +122,7 @@ class TestAlertRulesMigration:
         assert len(group["rules"]) > 0, "No rules in group"
 
     def test_all_alert_rules_present(self) -> None:
-        rules_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        rules_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         content = rules_file.read_text()
         data = yaml.safe_load(content)
 
@@ -149,7 +149,7 @@ class TestAlertRulesMigration:
 
     def test_alert_rules_have_required_fields(self) -> None:
         """Verify each alert rule has required fields."""
-        rules_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        rules_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         content = rules_file.read_text()
         data = yaml.safe_load(content)
 
@@ -171,7 +171,7 @@ class TestAlertRulesMigration:
             assert "team" in labels, f"Rule {rule['title']} missing team label"
             assert "service" in labels, f"Rule {rule['title']} missing service label"
             assert labels["team"] == "observability", "Team label should be observability"
-            assert labels["service"] == "ecommerce-agent", "Service label should be ecommerce-agent"
+            assert labels["service"] == "store-service-desk", "Service label should be store-service-desk"
 
             annotations = rule["annotations"]
             assert "summary" in annotations, f"Rule {rule['title']} missing summary annotation"
@@ -183,7 +183,7 @@ class TestAlertRulesMigration:
             )
 
     def test_alert_rules_uid_format(self) -> None:
-        rules_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        rules_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         content = rules_file.read_text()
         data = yaml.safe_load(content)
 
@@ -191,13 +191,13 @@ class TestAlertRulesMigration:
 
         for rule in rules:
             uid = rule["uid"]
-            assert uid.startswith("ecommerce-agent-") or uid.startswith("slo-"), (
-                f"Rule {rule['title']} UID should start with ecommerce-agent- or slo-"
+            assert uid.startswith("store-service-desk-") or uid.startswith("slo-"), (
+                f"Rule {rule['title']} UID should start with store-service-desk- or slo-"
             )
 
     def test_alert_rules_evaluation_interval(self) -> None:
         """Verify alert rules use 1m evaluation interval."""
-        rules_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        rules_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         content = rules_file.read_text()
         data = yaml.safe_load(content)
 
@@ -274,7 +274,7 @@ class TestAlertRulesConsistency:
         prometheus_content = PROMETHEUS_RULES_FILE.read_text()
         prometheus_data = yaml.safe_load(prometheus_content)
 
-        grafana_file = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+        grafana_file = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
         grafana_content = grafana_file.read_text()
         grafana_data = yaml.safe_load(grafana_content)
 

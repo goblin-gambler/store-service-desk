@@ -5,7 +5,7 @@ groups:
       - record: slo:availability:ratio_30d
         expr: |
           (
-            avg_over_time(up{job="ecommerce-agent"}[30d])
+            avg_over_time(up{job="store-service-desk"}[30d])
           ) * 100
         labels:
           slo: "availability"

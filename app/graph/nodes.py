@@ -22,8 +22,8 @@ from app.agents.router import IntentRouterAgent
 from app.agents.settlement import SettlementAgent
 from app.agents.staff import StaffAgent
 from app.agents.store import StoreAgent
-from app.agents.supply import SupplyAgent
 from app.agents.supervisor import SupervisorAgent
+from app.agents.supply import SupplyAgent
 from app.context.token_budget import MemoryTokenBudget
 from app.core.config import settings
 from app.core.database import async_session_maker, sync_session_maker
@@ -178,11 +178,11 @@ def build_memory_node(
                 if profile:
                     memory_context["user_profile"] = {
                         "user_id": profile.user_id,
-                        "membership_level": profile.membership_level,
+                        "employee_no": profile.employee_no,
+                        "store_code": profile.store_code,
+                        "role_title": profile.role_title,
                         "preferred_language": profile.preferred_language,
                         "timezone": profile.timezone,
-                        "total_orders": profile.total_orders,
-                        "lifetime_value": profile.lifetime_value,
                     }
                 if preferences:
                     memory_context["preferences"] = [

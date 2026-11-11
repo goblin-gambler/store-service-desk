@@ -5,14 +5,14 @@ filebeat.inputs:
 - type: log
   enabled: true
   paths:
-    - /var/log/ecommerce-agent/*.json.log
-    - /var/log/ecommerce-agent/app.log
+    - /var/log/store-service-desk/*.json.log
+    - /var/log/store-service-desk/app.log
   json.keys_under_root: true
   json.add_error_key: true
   json.message_key: message
-  tags: ["ecommerce-agent", "backend"]
+  tags: ["store-service-desk", "backend"]
   fields:
-    service: ecommerce-smart-agent
+    service: store-service-desk
     environment: production
   fields_under_root: true
   multiline.pattern: '^\{'
@@ -23,10 +23,10 @@ filebeat.inputs:
 - type: log
   enabled: true
   paths:
-    - /var/log/ecommerce-agent/access.log
-  tags: ["ecommerce-agent", "access"]
+    - /var/log/store-service-desk/access.log
+  tags: ["store-service-desk", "access"]
   fields:
-    service: ecommerce-smart-agent
+    service: store-service-desk
     log_type: access
   fields_under_root: true
 
@@ -56,7 +56,7 @@ output.loki:
   # password: "secret"
 
   # Tenant ID for multi-tenant Loki deployments
-  # tenant_id: "ecommerce-agent"
+  # tenant_id: "store-service-desk"
 
   # Batch settings
   batch_wait: 1s
@@ -67,7 +67,7 @@ output.loki:
 
   # Labels extracted from log fields
   labels:
-    job: "ecommerce-agent"
+    job: "store-service-desk"
     level: "{{ .level }}"
     logger: "{{ .logger }}"
     correlation_id: "{{ .correlation_id }}"

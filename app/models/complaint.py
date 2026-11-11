@@ -55,7 +55,6 @@ class ComplaintTicket(SQLModel, table=True):
     thread_id: str = Field(index=True, max_length=128, description="会话线程 ID")
 
     category: str = Field(max_length=32, description="投诉类别")
-    order_sn: str | None = Field(default=None, max_length=64, description="关联订单号")
     description: str = Field(description="详细描述")
     expected_resolution: str = Field(max_length=32, description="期望解决方案")
 

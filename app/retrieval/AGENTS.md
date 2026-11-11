@@ -31,7 +31,7 @@ Hybrid RAG retrieval system combining dense embeddings, sparse embeddings (BM25)
 
 ```bash
 # Run retrieval module tests
-uv run pytest tests/retrieval/
+uv run python -m pytest tests/retrieval/
 ```
 
 ## Code Style

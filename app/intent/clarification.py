@@ -20,11 +20,13 @@ class ClarificationEngine:
     MAX_SUGGESTIONS = 4
 
     SLOT_QUESTION_TEMPLATES: dict[str, str] = {
-        "order_sn": "请问您的订单号是多少？",
-        "action_type": "请问您需要办理什么业务？（退货/换货/维修）",
+        "store_code": "请问是哪个门店？（例如 ST1001）",
+        "device_type": "请问是哪台设备？（例如 制冰机 / 冷柜）",
+        "amount": "请问涉及金额是多少元？",
         "reason_category": "请问是什么原因呢？",
         "product_name": "请问是哪个商品呢？",
-        "policy_topic": "请问您想了解哪方面的政策？",
+        "policy_topic": "请问您想了解哪方面的制度？",
+        "employee_no": "请问员工工号是多少？",
         "modify_field": "请问您需要修改什么信息？",
         "new_value": "请问新的值是什么？",
     }

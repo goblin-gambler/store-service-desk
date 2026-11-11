@@ -31,7 +31,7 @@ Observability layer providing OpenTelemetry tracing, execution logging, and late
 
 ```bash
 # Run observability module tests
-uv run pytest tests/observability/
+uv run python -m pytest tests/observability/
 ```
 
 ## Code Style

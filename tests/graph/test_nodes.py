@@ -4,8 +4,8 @@ from langgraph.types import Command
 from app.graph.nodes import (
     build_evaluator_node,
     build_policy_node,
-    build_store_node,
     build_router_node,
+    build_store_node,
     build_synthesis_node,
     decider_node,
 )
@@ -13,8 +13,8 @@ from app.models.state import make_agent_state
 from tests._agents import (
     DeterministicEvaluator,
     DeterministicPolicyAgent,
-    DeterministicStoreAgent,
     DeterministicRouterAgent,
+    DeterministicStoreAgent,
 )
 
 
@@ -53,7 +53,7 @@ async def test_router_node_routes_to_supervisor():
 
     node = build_router_node(mock_agent)
     state = make_agent_state(
-        question="运费怎么算",
+        question="报损怎么申请",
         thread_id="t2",
         iteration_count=0,
     )
@@ -93,19 +93,19 @@ async def test_router_node_missing_next_agent():
 async def test_policy_node():
     mock_agent = DeterministicPolicyAgent(
         process_result={
-            "response": "运费满100免运费",
+            "response": "报损金额超过200元需店长审批",
             "updated_state": {"context": ["policy chunk"]},
         }
     )
 
     node = build_policy_node(mock_agent)
-    state = make_agent_state(question="运费", thread_id="t6")
+    state = make_agent_state(question="报损", thread_id="t6")
     result = await node(state)
 
     assert isinstance(result, Command)
     assert result.goto == "evaluator_node"
     assert result.update is not None
-    assert result.update["answer"] == "运费满100免运费"
+    assert result.update["answer"] == "报损金额超过200元需店长审批"
     assert result.update["context"] == ["policy chunk"]
 
 
@@ -180,7 +180,7 @@ async def test_evaluator_node_low_confidence_retries():
     node = build_evaluator_node(mock_eval)
     state = make_agent_state(
         answer="不确定",
-        question="怎么退货",
+        question="怎么报损",
         iteration_count=1,
     )
     result = await node(state)
@@ -209,7 +209,7 @@ async def test_evaluator_node_retry_excludes_transfer_flags():
     node = build_evaluator_node(mock_eval)
     state = make_agent_state(
         answer="不确定",
-        question="怎么退货",
+        question="怎么报损",
         iteration_count=1,
     )
     result = await node(state)
@@ -235,8 +235,8 @@ async def test_evaluator_node_high_confidence_goes_to_decider():
 
     node = build_evaluator_node(mock_eval)
     state = make_agent_state(
-        answer="运费满100免运费",
-        question="运费怎么算",
+        answer="报损金额超过200元需店长审批",
+        question="报损怎么申请",
         iteration_count=1,
     )
     result = await node(state)
@@ -271,8 +271,8 @@ async def test_evaluator_node_boundary_confidence_retries():
 
 def test_decider_node_normal():
     state = make_agent_state(
-        question="运费",
-        answer="运费满100免运费",
+        question="报损",
+        answer="报损金额超过200元需店长审批",
         audit_level="none",
         confidence_score=0.85,
         confidence_signals={"rag": {"score": 0.9}},
@@ -281,11 +281,11 @@ def test_decider_node_normal():
     )
     result = decider_node(state)
 
-    assert result["answer"] == "运费满100免运费"
+    assert result["answer"] == "报损金额超过200元需店长审批"
     assert result["needs_human_transfer"] is False
     assert result["audit_level"] == "none"
     assert result["confidence_score"] == 0.85
-    assert result["answer"] == "运费满100免运费"
+    assert result["answer"] == "报损金额超过200元需店长审批"
 
 
 def test_decider_node_transfer():
@@ -394,7 +394,7 @@ async def test_synthesis_node_with_real_llm(real_llm):
             },
             {
                 "agent": "policy_agent",
-                "response": "我们支持 7 天无理由退货，请在收到商品后 7 天内申请。",
+                "response": "我们支持 7 天无理由报损，请在收到商品后 7 天内申请。",
                 "iteration": 0,
             },
         ],

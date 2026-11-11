@@ -33,16 +33,15 @@ export function ConversationLogs() {
 
   const INTENT_OPTIONS = [
     { value: '', label: '全部意图' },
-    { value: 'ORDER', label: 'ORDER' },
-    { value: 'AFTER_SALES', label: 'AFTER_SALES' },
+    { value: 'STORE', label: 'STORE' },
+    { value: 'LOSS', label: 'LOSS' },
     { value: 'POLICY', label: 'POLICY' },
-    { value: 'ACCOUNT', label: 'ACCOUNT' },
-    { value: 'PROMOTION', label: 'PROMOTION' },
-    { value: 'PAYMENT', label: 'PAYMENT' },
-    { value: 'LOGISTICS', label: 'LOGISTICS' },
+    { value: 'SUPPLY', label: 'SUPPLY' },
+    { value: 'SETTLEMENT', label: 'SETTLEMENT' },
     { value: 'PRODUCT', label: 'PRODUCT' },
-    { value: 'CART', label: 'CART' },
+    { value: 'MATERIAL', label: 'MATERIAL' },
     { value: 'COMPLAINT', label: 'COMPLAINT' },
+    { value: 'STAFF', label: 'STAFF' },
     { value: 'OTHER', label: 'OTHER' },
   ]
 

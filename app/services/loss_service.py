@@ -287,7 +287,7 @@ class LossService:
     @staticmethod
     def _notify_admin(audit_id: int) -> None:
         try:
-            from app.tasks.refund_tasks import notify_admin_audit
+            from app.tasks.audit_tasks import notify_admin_audit
 
             notify_admin_audit.delay(audit_id)
         except Exception:  # noqa: BLE001 - 通知失败不能阻塞业务主流程

@@ -49,19 +49,19 @@ def test_answer_similarity_one_empty():
 
 def test_compare_results_match():
     prod_result = {
-        "result": {"intent_category": "ORDER", "answer": "Your order is confirmed"},
+        "result": {"intent_category": "STORE", "answer": "Your order is confirmed"},
         "latency_ms": 100,
     }
     shadow_result = {
-        "result": {"intent_category": "ORDER", "answer": "Your order is confirmed"},
+        "result": {"intent_category": "STORE", "answer": "Your order is confirmed"},
         "latency_ms": 120,
     }
 
     result = ShadowOrchestrator.compare_results("thread_1", prod_result, shadow_result)
 
     assert result.thread_id == "thread_1"
-    assert result.production_intent == "ORDER"
-    assert result.shadow_intent == "ORDER"
+    assert result.production_intent == "STORE"
+    assert result.shadow_intent == "STORE"
     assert result.intent_match is True
     assert result.production_answer == "Your order is confirmed"
     assert result.shadow_answer == "Your order is confirmed"
@@ -73,7 +73,7 @@ def test_compare_results_match():
 
 def test_compare_results_mismatch():
     prod_result = {
-        "result": {"intent_category": "ORDER", "answer": "Order confirmed"},
+        "result": {"intent_category": "STORE", "answer": "Order confirmed"},
         "latency_ms": 100,
     }
     shadow_result = {
@@ -84,7 +84,7 @@ def test_compare_results_mismatch():
     result = ShadowOrchestrator.compare_results("thread_2", prod_result, shadow_result)
 
     assert result.intent_match is False
-    assert result.production_intent == "ORDER"
+    assert result.production_intent == "STORE"
     assert result.shadow_intent == "POLICY"
     assert result.latency_delta_ms == 50
 
@@ -104,8 +104,8 @@ def test_generate_report_with_results():
     results = [
         ShadowComparisonResult(
             thread_id="t1",
-            production_intent="ORDER",
-            shadow_intent="ORDER",
+            production_intent="STORE",
+            shadow_intent="STORE",
             intent_match=True,
             production_answer="ans1",
             shadow_answer="ans1",
@@ -119,7 +119,7 @@ def test_generate_report_with_results():
         ),
         ShadowComparisonResult(
             thread_id="t2",
-            production_intent="ORDER",
+            production_intent="STORE",
             shadow_intent="POLICY",
             intent_match=False,
             production_answer="ans2",
@@ -156,14 +156,14 @@ async def test_run_shadow_mock_graphs():
                 "answer": self.answer,
             }
 
-    prod_graph = MockGraph("ORDER", "Production answer")
-    shadow_graph = MockGraph("ORDER", "Shadow answer")
+    prod_graph = MockGraph("STORE", "Production answer")
+    shadow_graph = MockGraph("STORE", "Shadow answer")
 
     prod_result, shadow_result = await ShadowOrchestrator.run_shadow(
         "test query", prod_graph, shadow_graph
     )
 
-    assert prod_result["result"]["intent_category"] == "ORDER"
-    assert shadow_result["result"]["intent_category"] == "ORDER"
+    assert prod_result["result"]["intent_category"] == "STORE"
+    assert shadow_result["result"]["intent_category"] == "STORE"
     assert prod_result["latency_ms"] >= 0
     assert shadow_result["latency_ms"] >= 0

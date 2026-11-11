@@ -100,7 +100,7 @@ jobs:
         run: uv sync
 
       - name: Run performance regression tests
-        run: uv run pytest tests/performance/ -v --tb=short
+        run: uv run python -m pytest tests/performance/ -v --tb=short
 
       - name: Upload performance results
         if: always()

@@ -39,8 +39,6 @@ class TestGetThreadStatus:
             risk_level=RiskLevel.HIGH,
             trigger_reason="risk",
             context_snapshot={},
-            refund_application_id=1,
-            order_id=1,
             created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
         )
         db_session.add(audit)
@@ -77,8 +75,6 @@ class TestGetThreadStatus:
             reviewed_at=datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC),
             created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             updated_at=datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC),
-            refund_application_id=1,
-            order_id=1,
         )
         db_session.add(audit)
         await db_session.commit()
@@ -111,8 +107,6 @@ class TestGetThreadStatus:
             reviewed_at=datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC),
             created_at=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             updated_at=datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC),
-            refund_application_id=1,
-            order_id=1,
         )
         db_session.add(audit)
         await db_session.commit()

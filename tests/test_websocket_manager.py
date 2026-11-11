@@ -99,7 +99,7 @@ async def test_broadcast_to_admins_sends_to_all_admins(manager: ConnectionManage
 async def test_notify_status_change_sends_to_thread(manager: ConnectionManager):
     ws = AsyncMock()
     await manager.connect_user(ws, user_id=1, thread_id="t1")
-    await manager.notify_status_change("t1", "APPROVED", {"refund_id": 123})
+    await manager.notify_status_change("t1", "APPROVED", {"loss_report_id": 123})
     ws.send_json.assert_awaited_once()
     call_args = ws.send_json.await_args.args[0]
     assert call_args["type"] == "status_change"

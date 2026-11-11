@@ -50,7 +50,7 @@ class StatusService:
                 return StatusResponse(
                     thread_id=scoped_thread_id,
                     status="WAITING_ADMIN",
-                    message="人工审核中，请稍候.. .",
+                    message="人工审核中，请稍候。",
                     data={
                         "audit_log_id": latest_audit.id,
                         "risk_level": latest_audit.risk_level,
@@ -62,7 +62,7 @@ class StatusService:
                 return StatusResponse(
                     thread_id=scoped_thread_id,
                     status="APPROVED",
-                    message="审核通过，正在处理退款.. .",
+                    message="审核通过，正在处理报损单。",
                     data={
                         "admin_comment": latest_audit.admin_comment,
                         "reviewed_at": latest_audit.reviewed_at.isoformat()

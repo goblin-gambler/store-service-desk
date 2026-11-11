@@ -28,15 +28,15 @@ test('admin login and view dashboard', async ({ page }) => {
           audit_log_id: 1,
           thread_id: 'thread_1',
           user_id: 1,
-          trigger_reason: '我要退货',
+          trigger_reason: '我要报损',
           risk_level: 'HIGH',
           context_snapshot: {
-            question: '我要退货',
-            order_data: {
-              order_sn: 'ORD001',
-              total_amount: 199.0,
-              status: '已发货',
-              items: [{ name: '商品A', qty: 1 }],
+            question: '冷柜故障导致鲜奶变质，我要报损',
+            loss_report: {
+              report_sn: 'LS2024010100001',
+              amount: 199.0,
+              store_code: 'ST1001',
+              reason_category: 'DAMAGE',
             },
           },
           created_at: '2024-01-01T00:00:00Z',
@@ -82,5 +82,5 @@ test('admin login and view dashboard', async ({ page }) => {
   await expect(page.getByText('待审核: 1').first()).toBeVisible()
 
   // Assert mocked task text appears in the task list
-  await expect(page.getByText('我要退货')).toBeVisible()
+  await expect(page.getByText('我要报损')).toBeVisible()
 })

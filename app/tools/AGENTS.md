@@ -22,18 +22,19 @@ The tool layer provides a unified interface for agents to perform I/O operations
 |------|------|-------|
 | Base class | `@app/tools/base.py` | `BaseTool` ABC; `ToolResult` (Pydantic BaseModel) |
 | Tool registry | `@app/tools/registry.py` | `ToolRegistry` for dynamic tool discovery |
-| Product tool | `@app/tools/product_tool.py` | Qdrant semantic retrieval for product catalog |
-| Cart tool | `@app/tools/cart_tool.py` | Redis-persisted cart operations with 24h TTL |
-| Complaint tool | `@app/tools/complaint_tool.py` | Complaint ticket creation and management |
-| Payment tool | `@app/tools/payment_tool.py` | Payment query and refund processing |
-| Logistics tool | `@app/tools/logistics_tool.py` | Shipping and logistics tracking |
-| Account tool | `@app/tools/account_tool.py` | User account management |
+| Store tool | `@app/tools/store_tool.py` | 门店信息、设备状态、报修工单 |
+| Product tool | `@app/tools/product_tool.py` | 商品与配方目录语义检索（Qdrant） |
+| Supply tool | `@app/tools/supply_tool.py` | 补货单、配送进度与冷链温度异常 |
+| Settlement tool | `@app/tools/settlement_tool.py` | 日结、对账差异与发票状态 |
+| Material tool | `@app/tools/material_tool.py` | 物料申领单查询与增删改（Redis 草稿态） |
+| Staff tool | `@app/tools/staff_tool.py` | 员工档案、门店角色、权限与培训记录 |
+| Complaint tool | `@app/tools/complaint_tool.py` | 投诉工单创建与管理 |
 
 ## Commands
 
 ```bash
 # Run tool module tests
-uv run pytest tests/tools/
+uv run python -m pytest tests/tools/
 ```
 
 ## Code Style
@@ -56,7 +57,7 @@ General Python rules are defined in the root `AGENTS.md`. Tool-specific conventi
 
 - **Unified entry**: All `BaseTool` subclasses must implement `async execute(self, state) -> ToolResult`.
 - **Registry registration**: Tools must register themselves in `ToolRegistry` for agent discovery.
-- **User isolation**: All order/refund/cart/account queries must filter by `user_id`.
+- **User isolation**: All loss-report, material, and memory queries must filter by `user_id`.
 - **Return contract**: `ToolResult` must include `output` (dict), `confidence` (float, default 1.0), and `source` (str, default "tool").
 
 ## Anti-Patterns

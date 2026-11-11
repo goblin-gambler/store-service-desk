@@ -10,8 +10,8 @@ from app.evaluation.metrics import (
 
 @pytest.mark.asyncio
 async def test_rag_precision_heuristic_exact_match():
-    chunks = ["退换货政策: 7天无理由", "其他信息"]
-    result = await rag_precision("退换货政策", chunks, llm_judge=False)
+    chunks = ["报损政策: 7天无理由", "其他信息"]
+    result = await rag_precision("报损政策", chunks, llm_judge=False)
     assert result == pytest.approx(1.0)
 
 
@@ -25,7 +25,7 @@ async def test_rag_precision_heuristic_token_match():
 @pytest.mark.asyncio
 async def test_rag_precision_heuristic_no_match():
     chunks = ["不相关的内容", "其他信息"]
-    result = await rag_precision("退换货政策", chunks, llm_judge=False)
+    result = await rag_precision("报损政策", chunks, llm_judge=False)
     assert result == pytest.approx(0.0)
 
 
@@ -174,6 +174,6 @@ async def test_batch_rag_precision_respects_max_concurrency():
 @pytest.mark.requires_llm
 @pytest.mark.asyncio
 async def test_real_llm_rag_precision(real_llm):
-    chunks = ["退换货政策: 7天无理由退货", "发货时效: 1-3天", "其他信息"]
-    result = await rag_precision("退换货政策", chunks, llm_judge=True, llm=real_llm)
+    chunks = ["报损政策: 临期商品可报损", "发货时效: 1-3天", "其他信息"]
+    result = await rag_precision("报损政策", chunks, llm_judge=True, llm=real_llm)
     assert 0.0 <= result <= 1.0

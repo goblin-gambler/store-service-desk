@@ -3,7 +3,7 @@
   "uid": "agent-performance",
   "title": "Agent Performance",
   "tags": [
-    "ecommerce",
+    "store",
     "agent",
     "performance"
   ],
@@ -40,7 +40,7 @@
           "type": "loki",
           "uid": "loki"
         },
-        "expr": "{app=\"ecommerce-agent\"} |= \"trace_id=\"",
+        "expr": "{app=\"store-service-desk\"} |= \"trace_id=\"",
         "iconColor": "blue",
         "tags": ["trace"],
         "type": "tags"
@@ -54,7 +54,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "intent_accuracy{job=\"ecommerce-agent\"}",
+          "expr": "intent_accuracy{job=\"store-service-desk\"}",
           "legendFormat": "{{agent_type}}"
         }
       ],
@@ -71,7 +71,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "rag_precision{job=\"ecommerce-agent\"}",
+          "expr": "rag_precision{job=\"store-service-desk\"}",
           "legendFormat": "RAG"
         }
       ],
@@ -88,7 +88,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "answer_correctness{job=\"ecommerce-agent\"}",
+          "expr": "answer_correctness{job=\"store-service-desk\"}",
           "legendFormat": "Correctness"
         }
       ],
@@ -134,7 +134,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "token_efficiency{job=\"ecommerce-agent\"}",
+          "expr": "token_efficiency{job=\"store-service-desk\"}",
           "legendFormat": "Efficiency"
         }
       ],

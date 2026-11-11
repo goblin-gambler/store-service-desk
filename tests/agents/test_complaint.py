@@ -16,7 +16,7 @@ def agent(deterministic_llm):
 async def test_complaint_agent_creates_ticket(agent):
     llm_response = (
         '{"category": "product_defect", "urgency": "high", '
-        '"summary": "商品有瑕疵", "expected_resolution": "refund", '
+        '"summary": "商品有瑕疵", "expected_resolution": "replacement", '
         '"empathetic_response": "非常抱歉，已为您创建工单 {ticket_id}"}'
     )
     agent.llm = DeterministicChatModel(responses=[(["投诉"], llm_response)])
@@ -60,12 +60,12 @@ async def test_complaint_agent_ticket_creation_fails(agent):
 async def test_complaint_agent_parses_markdown_json(agent):
     llm_response = (
         "```json\n"
-        '{"category": "logistics", "urgency": "high", '
-        '"summary": "物流太慢", "expected_resolution": "compensation", '
+        '{"category": "supply", "urgency": "high", '
+        '"summary": "配送太慢", "expected_resolution": "compensation", '
         '"empathetic_response": "工单 {ticket_id} 已创建"}'
         "\n```"
     )
-    agent.llm = DeterministicChatModel(responses=[(["海外"], llm_response)])
+    agent.llm = DeterministicChatModel(responses=[(["冷链"], llm_response)])
 
     with (
         patch(
@@ -73,7 +73,7 @@ async def test_complaint_agent_parses_markdown_json(agent):
         ),
         patch.object(agent._tool, "create_ticket", new=AsyncMock(return_value={"ticket_id": 7})),
     ):
-        state = make_agent_state(question="海外订单无法追踪")
+        state = make_agent_state(question="冷链配送温度异常")
         result = await agent.process(state)
 
     assert "7" in result["response"]

@@ -87,7 +87,7 @@ async def test_retriever_orchestrates_all_steps(qdrant_client):
         rewriter=DeterministicRewriter(),
     )
 
-    results = await retriever.retrieve("怎么退货")
+    results = await retriever.retrieve("怎么报损")
     assert len(results) == 2
     contents = {r.content for r in results}
     assert contents == {"c1", "c2"}
@@ -115,7 +115,7 @@ async def test_retriever_sparse_embedder_failure_propagates(qdrant_client):
     )
 
     with pytest.raises(ConnectionError, match="sparse fail"):
-        await retriever.retrieve("怎么退货")
+        await retriever.retrieve("怎么报损")
 
 
 @pytest.mark.asyncio
@@ -150,7 +150,7 @@ async def test_retriever_reranker_failure_propagates(qdrant_client):
     )
 
     with pytest.raises(ConnectionError, match="rerank fail"):
-        await retriever.retrieve("怎么退货")
+        await retriever.retrieve("怎么报损")
 
 
 @pytest.mark.asyncio
@@ -195,7 +195,7 @@ async def test_retriever_multi_query_mode(qdrant_client):
         use_multi_query=True,
     )
 
-    results = await retriever.retrieve("怎么退货")
+    results = await retriever.retrieve("怎么报损")
     assert len(results) == 2
     contents = {r.content for r in results}
     assert contents == {"c1", "c2"}
@@ -243,6 +243,6 @@ async def test_retriever_multi_query_deduplicates(qdrant_client):
         use_multi_query=True,
     )
 
-    results = await retriever.retrieve("怎么退货")
+    results = await retriever.retrieve("怎么报损")
     assert len(results) == 1
     assert results[0].content == "same"

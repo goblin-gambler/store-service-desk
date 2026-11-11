@@ -35,7 +35,7 @@ Intent recognition pipeline that classifies user messages into intents, determin
 
 ```bash
 # Run intent module tests
-uv run pytest tests/intent/
+uv run python -m pytest tests/intent/
 ```
 
 ## Code Style

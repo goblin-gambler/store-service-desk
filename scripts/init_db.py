@@ -4,7 +4,7 @@
 
     PYTHONUTF8=1 PYTHONPATH=. python scripts/init_db.py
 
-说明：本项目在魔改时保留了原电商项目的表结构，并新增 ``loss_reports``。
+说明：脚本按 SQLModel 元数据创建门店服务台全部业务表（含 ``loss_reports``）。
 本地开发直接用 SQLModel.metadata.create_all 建表，建完后把 alembic
 版本戳到 head，后续增量变更仍可继续用 alembic。
 

@@ -26,8 +26,8 @@ class TestRunShadowTest:
             "app.tasks.shadow_tasks.ShadowOrchestrator.run_shadow", new_callable=AsyncMock
         ) as mock_run_shadow:
             mock_run_shadow.return_value = (
-                {"result": {"intent_category": "ORDER", "answer": "Yes"}, "latency_ms": 100},
-                {"result": {"intent_category": "ORDER", "answer": "Yes"}, "latency_ms": 120},
+                {"result": {"intent_category": "STORE", "answer": "Yes"}, "latency_ms": 100},
+                {"result": {"intent_category": "STORE", "answer": "Yes"}, "latency_ms": 120},
             )
 
             result = await _run_shadow_test("test query")
@@ -81,8 +81,8 @@ class TestRunShadowTest:
             "app.tasks.shadow_tasks.ShadowOrchestrator.run_shadow", new_callable=AsyncMock
         ) as mock_run_shadow:
             mock_run_shadow.return_value = (
-                {"result": {"intent_category": "ORDER", "answer": "Yes"}, "latency_ms": 100},
-                {"result": {"intent_category": "REFUND", "answer": "No"}, "latency_ms": 150},
+                {"result": {"intent_category": "STORE", "answer": "Yes"}, "latency_ms": 100},
+                {"result": {"intent_category": "LOSS", "answer": "No"}, "latency_ms": 150},
             )
 
             result = await _run_shadow_test("test query")
@@ -109,8 +109,8 @@ class TestRunShadowTest:
             "app.tasks.shadow_tasks.ShadowOrchestrator.run_shadow", new_callable=AsyncMock
         ) as mock_run_shadow:
             mock_run_shadow.return_value = (
-                {"result": {"intent_category": "ORDER", "answer": "Yes"}, "latency_ms": 100},
-                {"result": {"intent_category": "ORDER", "answer": "Yes"}, "latency_ms": 700},
+                {"result": {"intent_category": "STORE", "answer": "Yes"}, "latency_ms": 100},
+                {"result": {"intent_category": "STORE", "answer": "Yes"}, "latency_ms": 700},
             )
 
             result = await _run_shadow_test("test query")

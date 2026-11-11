@@ -22,7 +22,7 @@ async def create_complaint_ticket(
             thread_id=f"thread_{uuid.uuid4().hex[:8]}",
             category=category,
             description="Test complaint description",
-            expected_resolution="refund",
+            expected_resolution="investigation",
             status=status,
             urgency=urgency,
             assigned_to=assigned_to,
@@ -204,7 +204,7 @@ async def test_resolve_complaint(client):
     response = await client.patch(
         f"/api/v1/admin/complaints/{ticket.id}/resolve",
         headers={"Authorization": f"Bearer {token}"},
-        json={"resolution_notes": "Resolved by refund"},
+        json={"resolution_notes": "Resolved by compensation"},
     )
     assert response.status_code == 200
     data = response.json()

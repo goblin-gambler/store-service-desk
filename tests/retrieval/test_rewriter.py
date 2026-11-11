@@ -88,7 +88,7 @@ async def test_rewrite_fallback_on_failure(deterministic_llm, redis_client):
 @pytest.mark.asyncio
 async def test_real_llm_rewrite(real_llm):
     rewriter = QueryRewriter(llm=real_llm)
-    result = await rewriter.rewrite("怎么退货")
+    result = await rewriter.rewrite("怎么报损")
     assert isinstance(result, str)
     assert len(result) > 0
 

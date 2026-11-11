@@ -51,10 +51,6 @@ class AuditLog(SQLModel, table=True):
     # 会话标识
     thread_id: str = Field(index=True, max_length=128, description="会话ID")
 
-    # 关联的订单/申请ID
-    order_id: int | None = Field(default=None, index=True)
-    refund_application_id: int | None = Field(default=None, index=True)
-
     # 用户信息
     user_id: int = Field(foreign_key="users.id", index=True, description="发起用户ID")
 
@@ -102,7 +98,7 @@ class AuditLog(SQLModel, table=True):
         default=None, sa_column=Column(Text), description="管理员备注"
     )
 
-    # 上下文快照 (保存触发时的完整对话历史和订单详情)
+    # 上下文快照（保存触发时的完整对话与业务单据详情）
     context_snapshot: dict[str, Any] = Field(
         sa_column=Column(JSON, nullable=False), description="触发时的上下文快照"
     )

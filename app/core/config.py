@@ -220,10 +220,6 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: SecretStr
     CELERY_RESULT_BACKEND: str
 
-    # 风控阈值配置
-    HIGH_RISK_REFUND_AMOUNT: float = 2000.0  # 高风险退款金额阈值
-    MEDIUM_RISK_REFUND_AMOUNT: float = 500.0  # 中风险退款金额阈值
-
     # WebSocket 配置
     WEBSOCKET_HEARTBEAT_INTERVAL: int = 30  # 心跳间隔（秒）
     WEBSOCKET_RECONNECT_TIMEOUT: int = 60  # 重连超时（秒）
@@ -235,12 +231,6 @@ class Settings(BaseSettings):
     LOSS_AUTO_APPROVE_AMOUNT: float = 200.0  # 低于该金额自动通过
     LOSS_REGIONAL_APPROVAL_AMOUNT: float = 2000.0  # 高于该金额升级到区域督导
     LOSS_REPORT_DEADLINE_DAYS: int = 3  # 事后补报时限
-
-    # Refund rules
-    REFUND_DEADLINE_DAYS: int = 7
-    NON_REFUNDABLE_CATEGORIES: list[str] = Field(
-        default_factory=lambda: ["内衣", "食品", "定制商品"]
-    )
 
     # Graph routing limits
     MAX_ROUTER_ITERATIONS: int = 5
@@ -255,7 +245,6 @@ class Settings(BaseSettings):
             "不满",
             "投诉",
             "差评",
-            "退款",
             "骗子",
             "垃圾",
             "太差",

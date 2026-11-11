@@ -2,7 +2,7 @@ services:
   # 核心数据库：PostgreSQL
   db:
     image: postgres:16
-    container_name: ecommerce_db
+    container_name: store_db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -22,7 +22,7 @@ services:
   # 会话记忆缓存：Redis
   redis:
     image: redis/redis-stack-server:7.4.0-v8
-    container_name: ecommerce_redis
+    container_name: store_redis
     restart: unless-stopped
     environment:
       REDISCLI_AUTH: ${REDIS_PASSWORD:-devpassword}
@@ -40,7 +40,7 @@ services:
 
   qdrant:
     image: qdrant/qdrant:v1.16.3
-    container_name: ecommerce_qdrant
+    container_name: store_qdrant
     restart: unless-stopped
     # 以下端口映射仅用于本地开发调试，生产环境请移除或限制访问来源
     ports:
@@ -59,7 +59,7 @@ services:
 
   celery_worker: 
     build: .
-    container_name: ecommerce_celery_worker
+    container_name: store_celery_worker
     command: celery -A app.celery_app worker --loglevel=info --concurrency=4 --pool=solo --beat -E
     depends_on:
       db:
@@ -79,7 +79,7 @@ services:
   # FastAPI 应用
   app:
     build: .
-    container_name: ecommerce_app
+    container_name: store_app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     # 以下端口映射仅用于本地开发调试，生产环境请移除或限制访问来源
     ports:

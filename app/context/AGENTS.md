@@ -29,7 +29,7 @@ Context engineering utilities for managing LLM context windows, including observ
 
 ```bash
 # Run context module tests
-uv run pytest tests/context/
+uv run python -m pytest tests/context/
 ```
 
 ## Code Style

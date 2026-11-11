@@ -44,7 +44,7 @@ async def create_sample_logs(user: User) -> None:
             GraphExecutionLog(
                 thread_id="t1",
                 user_id=user.id,
-                intent_category="order_query",
+                intent_category="store_query",
                 confidence_score=0.85,
                 needs_human_transfer=False,
                 total_latency_ms=1200,
@@ -54,7 +54,7 @@ async def create_sample_logs(user: User) -> None:
             GraphExecutionLog(
                 thread_id="t2",
                 user_id=user.id,
-                intent_category="refund_apply",
+                intent_category="loss_apply",
                 confidence_score=0.45,
                 needs_human_transfer=True,
                 total_latency_ms=800,
@@ -64,7 +64,7 @@ async def create_sample_logs(user: User) -> None:
             GraphExecutionLog(
                 thread_id="t3",
                 user_id=user.id,
-                intent_category="order_query",
+                intent_category="store_query",
                 confidence_score=0.92,
                 needs_human_transfer=False,
                 total_latency_ms=1500,
@@ -129,7 +129,7 @@ async def test_transfer_reasons(client: AsyncClient) -> None:
     data = response.json()
     assert isinstance(data, list)
     reasons = [r["reason"] for r in data]
-    assert "refund_apply" in reasons
+    assert "loss_apply" in reasons
 
 
 @pytest.mark.asyncio

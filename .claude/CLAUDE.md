@@ -48,16 +48,16 @@ uv run alembic revision --autogenerate -m "description"
 
 ```bash
 # Backend — all tests
-uv run pytest
+uv run python -m pytest
 
 # Backend — with coverage gate (CI requirement: 75%)
-uv run pytest --cov=app --cov-fail-under=75
+uv run python -m pytest --cov=app --cov-fail-under=75
 
 # Run a single test file
-uv run pytest tests/test_chat_api.py
+uv run python -m pytest tests/test_chat_api.py
 
 # Run a single test
-uv run pytest tests/test_chat_api.py::test_chat_endpoint_returns_200
+uv run python -m pytest tests/test_chat_api.py::test_chat_endpoint_returns_200
 
 # Frontend unit tests
 cd frontend && npm run test
@@ -116,7 +116,7 @@ All agents live in `app/agents/`:
 - `router.py` — routes user intent to the correct agent
 - `supervisor.py` — orchestrates parallel/serial agent execution via LangGraph
 - `evaluator.py` — confidence scoring for response quality
-- `order.py`, `product.py`, `cart.py`, `payment.py`, `logistics.py`, `account.py`, `policy.py`, `complaint.py` — domain-specific agents
+- `store.py`, `policy.py`, `supply.py`, `settlement.py`, `product.py`, `material.py`, `staff.py`, `complaint.py` — domain-specific agents
 
 Agents use `ToolRegistry` (registered in `app.main:lifespan`) to access tools defined in `app/tools/`.
 
@@ -162,7 +162,7 @@ Scheduled via `beat_schedule` in `app/celery_app.py`.
 ## Key Conventions
 
 - **Async-first**: All I/O-bound backend code is async. Use `AsyncSession`, `await llm.ainvoke(...)`, async FastAPI routes.
-- **Multi-tenant isolation**: Every query involving orders, refunds, carts, or memories must filter by `user_id`. Never return cross-user data.
+- **Multi-tenant isolation**: Every query involving loss reports, stores, or memories must filter by `user_id`. Never return cross-user data.
 - **Settings centralization**: All config lives in `app.core.config.settings`. Never read `os.environ` directly outside `app/core/config.py`.
 - **Type safety**: Never suppress type errors with `typing.Any` or `# type: ignore` except for third-party package compatibility. Frontend uses strict TypeScript — no `@ts-ignore`.
 - **Conventional Commits**: `feat(scope):`, `fix(scope):`, `test(scope):`, etc. Scope examples: `memory`, `agent`, `graph`, `frontend`.

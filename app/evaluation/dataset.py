@@ -109,14 +109,18 @@ def validate_dataset_dimensions(
     """
     if expected_dimensions is None:
         expected_dimensions = {
-            "order_query": 30,
-            "refund_apply": 25,
-            "policy_inquiry": 25,
-            "product_query": 20,
-            "ambiguous_intent": 20,
-            "multi_intent": 15,
-            "abnormal_input": 15,
-            "long_conversation": 10,
+            "store_query": 2,
+            "device_query": 1,
+            "loss_policy": 3,
+            "loss_auto": 1,
+            "loss_regional": 1,
+            "loss_query": 1,
+            "supply_query": 1,
+            "settlement_query": 1,
+            "material_apply": 1,
+            "product_recipe": 1,
+            "complaint": 1,
+            "ambiguous_intent": 1,
         }
 
     actual = dataset.dimension_counts

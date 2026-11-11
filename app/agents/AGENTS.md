@@ -14,21 +14,21 @@
 
 ## Overview
 
-Expert agent fleet based on `BaseAgent` ABC covering orders, policies, products, cart, logistics, account, and payments. Each agent exposes a unified `async process(state) -> AgentProcessResult` entry point and delegates I/O to dedicated tool layers.
+Expert agent fleet based on `BaseAgent` ABC covering store operations, loss reports, policies, supply, settlement, products, material requests, complaints, and staff. Each agent exposes a unified `async process(state) -> AgentProcessResult` entry point and delegates I/O to dedicated tool layers.
 
 ## Key Files
 
 | Role | File | Notes |
 |------|------|-------|
 | Base class | `@app/agents/base.py` | `BaseAgent` ABC; `process()` → `AgentProcessResult` |
-| Product QA | `@app/agents/product.py` + `@app/tools/product_tool.py` | Qdrant `product_catalog` semantic retrieval |
-| Cart | `@app/agents/cart.py` + `@app/tools/cart_tool.py` | Redis persistence, 24h TTL |
-| Complaint | `@app/agents/complaint.py` + `@app/tools/complaint_tool.py` | LLM auto-classification + ticket creation |
-| Order | `@app/agents/order.py` | Order query and management |
-| Payment | `@app/agents/payment.py` + `@app/tools/payment_tool.py` | Payment query and refund processing |
-| Logistics | `@app/agents/logistics.py` + `@app/tools/logistics_tool.py` | Shipping and logistics tracking |
-| Account | `@app/agents/account.py` + `@app/tools/account_tool.py` | User account management |
-| Policy | `@app/agents/policy.py` | Policy Q&A via RAG retrieval |
+| Store & device | `@app/agents/store.py` + `@app/tools/store_tool.py` | 门店信息、设备状态、报修工单；通过 `LossService` 受理报损 |
+| Product | `@app/agents/product.py` + `@app/tools/product_tool.py` | 商品与配方目录语义检索（Qdrant） |
+| Supply | `@app/agents/supply.py` + `@app/tools/supply_tool.py` | 补货单、配送进度、冷链温度异常 |
+| Settlement | `@app/agents/settlement.py` + `@app/tools/settlement_tool.py` | 日结、对账差异与发票状态 |
+| Material | `@app/agents/material.py` + `@app/tools/material_tool.py` | 物料申领单（Redis 草稿态，提交后转正式领用单） |
+| Staff | `@app/agents/staff.py` + `@app/tools/staff_tool.py` | 员工档案、门店角色、权限与培训记录 |
+| Complaint | `@app/agents/complaint.py` + `@app/tools/complaint_tool.py` | LLM 自动分类 + 投诉工单创建 |
+| Policy | `@app/agents/policy.py` | 制度与政策问答，混合 RAG 检索 |
 | Supervisor | `@app/agents/supervisor.py` | Serial/parallel dispatch logic |
 | Intent router | `@app/agents/router.py` | `IntentRouterAgent`; handles greeting personalization, retry logic, disabled agent fallback, and iteration limits |
 | Config hot-reload | `@app/agents/config_loader.py` | Redis-cached routing rules and system prompts (60s TTL) |
@@ -39,7 +39,7 @@ Expert agent fleet based on `BaseAgent` ABC covering orders, policies, products,
 
 ```bash
 # Run agent module tests
-uv run pytest tests/agents/
+uv run python -m pytest tests/agents/
 ```
 
 ## Code Style
@@ -63,7 +63,7 @@ General Python rules are defined in the root `AGENTS.md`. Agent-specific convent
 - **Unified entry**: All `BaseAgent` subclasses must implement `async process(self, state) -> AgentProcessResult`.
 - **Hot-reload**: Each agent calls `await self._load_config()` inside `process()` to pick up config changes without restart.
 - **Memory injection priority**: summaries → facts/profile → preferences → vector messages.
-- **User isolation**: All order/refund/cart queries must filter by `user_id`. Never return cross-user data.
+- **User isolation**: All loss-report, store, and memory queries must filter by `user_id`. Never return cross-user data.
 - **Return contract**: `AgentProcessResult` must include `response` (string); optionally carry `updated_state`.
 
 ## Routing
@@ -72,17 +72,16 @@ The `SupervisorAgent` (see `@app/agents/supervisor.py`) routes intents to agents
 
 | Intent | Target Agent | Description |
 |--------|--------------|-------------|
-| `ORDER` | `order_agent` | Order query and management |
-| `AFTER_SALES` | `order_agent` | Post-sale support (refunds, cancellations) |
-| `POLICY` | `policy_agent` | Policy Q&A via RAG retrieval |
-| `LOGISTICS` | `logistics` | Shipping and logistics tracking |
-| `ACCOUNT` | `account` | User account management |
-| `PAYMENT` | `payment` | Payment query and refund processing |
-| `PRODUCT` | `product` | Product catalog Q&A via semantic retrieval |
-| `CART` | `cart` | Cart operations (add, remove, view) |
-| `PROMOTION` | `policy_agent` | Promotion-related inquiries |
-| `COMPLAINT` | `complaint` | Complaint filing and ticket creation |
-| `OTHER` | `policy_agent` | Fallback for unrecognized intents |
+| `STORE` | `store_agent` | 门店信息、设备状态与报修 |
+| `LOSS` | `store_agent` | 报损申请、审批与进度查询 |
+| `POLICY` | `policy_agent` | 制度与政策问答（RAG） |
+| `SUPPLY` | `supply_agent` | 补货单、配送与冷链异常 |
+| `SETTLEMENT` | `settlement_agent` | 日结、对账与发票 |
+| `PRODUCT` | `product` | 商品与配方检索 |
+| `MATERIAL` | `material_agent` | 物料申领 |
+| `COMPLAINT` | `complaint` | 投诉受理与工单 |
+| `STAFF` | `staff_agent` | 员工档案与权限 |
+| `OTHER` | `policy_agent` | 兜底意图 |
 
 The `IntentRouterAgent` (`@app/agents/router.py`) produces these intent strings from user input.
 

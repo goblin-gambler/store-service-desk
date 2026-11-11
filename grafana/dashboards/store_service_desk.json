@@ -1,9 +1,9 @@
 {
   "id": null,
-  "uid": "ecommerce-agent",
+  "uid": "store-service-desk",
   "title": "E-commerce Smart Agent",
   "tags": [
-    "ecommerce",
+    "store",
     "agent",
     "llm"
   ],
@@ -40,7 +40,7 @@
           "type": "loki",
           "uid": "loki"
         },
-        "expr": "{app=\"ecommerce-agent\"} |= \"trace_id=\"",
+        "expr": "{app=\"store-service-desk\"} |= \"trace_id=\"",
         "iconColor": "blue",
         "tags": ["trace"],
         "type": "tags"
@@ -68,7 +68,7 @@
             },
             {
               "title": "View Logs in Loki",
-              "url": "/explore?left=${__url_encode_explore_dict:{\"datasource\":\"Loki\",\"queries\":[{\"refId\":\"A\",\"expr\":\"{app=\\\"ecommerce-agent\\\"} |= \\\"trace_id=${trace_id}\\\"\"}]}}",
+              "url": "/explore?left=${__url_encode_explore_dict:{\"datasource\":\"Loki\",\"queries\":[{\"refId\":\"A\",\"expr\":\"{app=\\\"store-service-desk\\\"} |= \\\"trace_id=${trace_id}\\\"\"}]}}",
               "targetBlank": true
             }
           ]

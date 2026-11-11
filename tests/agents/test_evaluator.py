@@ -14,11 +14,11 @@ def evaluator():
 @pytest.mark.asyncio
 async def test_evaluator_with_retrieval_high_rag(evaluator):
     result = await evaluator.evaluate(
-        question="运费怎么算",
-        answer="满100免运费",
+        question="报损怎么申请",
+        answer="超过200元需店长审批",
         history=[],
         retrieval_result={
-            "chunks": ["运费怎么算"],
+            "chunks": ["报损怎么申请"],
             "similarities": [1.0],
         },
     )
@@ -91,11 +91,11 @@ def real_evaluator(real_llm):
 @pytest.mark.asyncio
 async def test_real_llm_evaluator_with_retrieval(real_evaluator):
     result = await real_evaluator.evaluate(
-        question="运费怎么算",
-        answer="满100免运费",
+        question="报损怎么申请",
+        answer="超过200元需店长审批",
         history=[],
         retrieval_result={
-            "chunks": ["运费怎么算"],
+            "chunks": ["报损怎么申请"],
             "similarities": [1.0],
         },
     )

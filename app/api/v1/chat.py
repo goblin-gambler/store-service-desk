@@ -80,7 +80,7 @@ async def _maybe_create_review_ticket(
     risk_score, risk_factors = await service.compute_risk_score(
         confidence=confidence,
         safety_blocked=needs_transfer,
-        refund_amount=None,
+        loss_amount=None,
         is_complaint=is_complaint,
     )
 
@@ -283,10 +283,11 @@ async def chat(
     current_user_id: int = Depends(get_current_user_id),
 ):
     """
-    聊天接口：支持订单查询和政策咨询
+    聊天接口：支持门店业务查询与制度咨询
 
-    - ORDER:  查询用户自己的订单
-    - POLICY: 从知识库检索政策信息
+    - STORE / LOSS: 门店、设备与报损业务
+    - POLICY: 从门店制度库检索条款
+    - 其他意图由 Supervisor 调度到对应专家 Agent
 
     v4.1 更新：流式响应结束时发送置信度元数据
     """

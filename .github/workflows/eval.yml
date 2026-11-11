@@ -113,14 +113,14 @@ jobs:
         run: |
           if [ -f reports/eval_baseline.json ]; then
             uv run python -m app.evaluation.run \
-              --dataset data/golden_dataset_v2.jsonl \
+              --dataset data/golden_store_v1.jsonl \
               --output-dir reports \
               --baseline reports/eval_baseline.json \
               --threshold 0.02
           else
             # First run: generate baseline
             uv run python -m app.evaluation.run \
-              --dataset data/golden_dataset_v2.jsonl \
+              --dataset data/golden_store_v1.jsonl \
               --output-dir reports \
               --threshold 0.02
             cp reports/eval_*.json reports/eval_baseline.json

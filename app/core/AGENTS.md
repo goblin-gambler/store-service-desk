@@ -37,7 +37,7 @@ Core infrastructure and cross-cutting concerns: configuration, security, databas
 
 ```bash
 # Run core tests
-uv run pytest tests/core/
+uv run python -m pytest tests/core/
 ```
 
 ## Code Style

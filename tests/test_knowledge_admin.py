@@ -9,7 +9,7 @@ from app.core.database import async_session_maker
 from app.core.security import create_access_token
 from app.models.knowledge_document import KnowledgeDocument
 from app.models.user import User
-from app.tasks.refund_tasks import send_refund_sms
+from app.tasks.audit_tasks import notify_admin_audit
 
 
 async def create_admin_user() -> tuple[User, str]:
@@ -176,7 +176,7 @@ async def test_sync_knowledge_document_endpoint(client):
 async def test_get_knowledge_sync_status(client):
     _admin, token = await create_admin_user()
 
-    task = send_refund_sms.delay(1, "13800138000", "test")
+    task = notify_admin_audit.delay(1)
 
     response = await client.get(
         f"/api/v1/admin/knowledge/sync/{task.id}",

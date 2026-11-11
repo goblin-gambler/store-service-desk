@@ -91,7 +91,7 @@ async def seed_logs() -> None:
             thread_id=f"t2_{uuid.uuid4().hex[:8]}",
             user_id=2,
             intent_category="order",
-            final_agent="order_agent",
+            final_agent="store_agent",
             confidence_score=0.55,
             needs_human_transfer=True,
             total_latency_ms=250,
@@ -108,7 +108,7 @@ async def seed_logs() -> None:
                     execution_id=ex2.id, node_name="router_node", latency_ms=20, created_at=now
                 ),
                 GraphNodeLog(
-                    execution_id=ex2.id, node_name="order_agent", latency_ms=200, created_at=now
+                    execution_id=ex2.id, node_name="store_agent", latency_ms=200, created_at=now
                 ),
             ]
         )
@@ -117,8 +117,8 @@ async def seed_logs() -> None:
         ex3 = GraphExecutionLog(
             thread_id=f"t3_{uuid.uuid4().hex[:8]}",
             user_id=3,
-            intent_category="refund",
-            final_agent="order_agent",
+            intent_category="loss",
+            final_agent="store_agent",
             confidence_score=0.75,
             needs_human_transfer=False,
             total_latency_ms=300,
@@ -139,7 +139,7 @@ async def seed_logs() -> None:
                 ),
                 GraphNodeLog(
                     execution_id=ex3.id,
-                    node_name="order_agent",
+                    node_name="store_agent",
                     latency_ms=250,
                     created_at=now - timedelta(days=10),
                 ),
@@ -180,9 +180,9 @@ async def test_metrics_endpoints(client):
     assert by_agent["policy_agent"]["total"] == 1
     assert by_agent["policy_agent"]["transfers"] == 0
     assert by_agent["policy_agent"]["transfer_rate"] == 0.0
-    assert by_agent["order_agent"]["total"] == 2
-    assert by_agent["order_agent"]["transfers"] == 1
-    assert by_agent["order_agent"]["transfer_rate"] == 0.5
+    assert by_agent["store_agent"]["total"] == 2
+    assert by_agent["store_agent"]["transfers"] == 1
+    assert by_agent["store_agent"]["transfer_rate"] == 0.5
 
     # confidence
     response = await client.get(
@@ -194,7 +194,7 @@ async def test_metrics_endpoints(client):
     assert isinstance(confidence, list)
     by_agent = {item["final_agent"]: item for item in confidence}
     assert by_agent["policy_agent"]["avg_confidence"] == pytest.approx(0.95, 0.01)
-    assert by_agent["order_agent"]["avg_confidence"] == pytest.approx(0.65, 0.01)
+    assert by_agent["store_agent"]["avg_confidence"] == pytest.approx(0.65, 0.01)
 
     # latency
     response = await client.get(
@@ -207,7 +207,7 @@ async def test_metrics_endpoints(client):
     by_node = {item["node_name"]: item for item in latency}
     assert by_node["router_node"]["p99_latency_ms"] == pytest.approx(29.8, 0.01)
     assert by_node["policy_agent"]["p99_latency_ms"] == pytest.approx(100.0, 0.01)
-    assert by_node["order_agent"]["p99_latency_ms"] == pytest.approx(250.0, 0.01)
+    assert by_node["store_agent"]["p99_latency_ms"] == pytest.approx(250.0, 0.01)
 
 
 @pytest.mark.asyncio

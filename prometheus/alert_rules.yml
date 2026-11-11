@@ -10,14 +10,14 @@
 # New alerting configuration location:
 #   - Contact Points: grafana/provisioning/alerting/contact-points.yml
 #   - Notification Policies: grafana/provisioning/alerting/notification-policies.yml
-#   - Alert Rules: grafana/provisioning/alerting/rules/ecommerce-agent.yml
+#   - Alert Rules: grafana/provisioning/alerting/rules/store-service-desk.yml
 #
 # Migration Date: Auto-generated
 # Target Removal: 1 sprint from migration date
 # =============================================================================
 
 groups:
-  - name: ecommerce_agent_alerts
+  - name: store_service_desk_alerts
     rules:
       - alert: HighErrorRate
         expr: rate(chat_errors_total[5m]) / rate(chat_requests_total[5m]) > 0.01
@@ -83,7 +83,7 @@ groups:
           description: "RAG retrieval precision has dropped below 60%."
 
       - alert: ServiceDown
-        expr: up{job="ecommerce-agent"} == 0
+        expr: up{job="store-service-desk"} == 0
         for: 1m
         labels:
           severity: critical

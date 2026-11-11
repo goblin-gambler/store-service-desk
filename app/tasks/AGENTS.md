@@ -28,7 +28,7 @@ Celery async task layer for background processing. Tasks are triggered by graph 
 | Notifications | `@app/tasks/notifications.py` | Email/SMS notification sending |
 | Observability logging | `@app/tasks/observability_tasks.py` | Post-chat async observability logging to keep SSE critical path fast |
 | Knowledge tasks | `@app/tasks/knowledge_tasks.py` | Knowledge base sync and embedding |
-| Refund tasks | `@app/tasks/refund_tasks.py` | Refund processing workflows |
+| Audit tasks | `@app/tasks/audit_tasks.py` | Admin audit notification (`store.notify_admin_audit`) |
 | Evaluation tasks | `@app/tasks/evaluation_tasks.py` | Async evaluation runs |
 | Continuous improvement | `@app/tasks/continuous_improvement_tasks.py` | CI pipeline tasks |
 | Prompt effect tracking | `@app/tasks/prompt_effect_tasks.py` | Prompt A/B effect measurement |
@@ -39,7 +39,7 @@ Celery async task layer for background processing. Tasks are triggered by graph 
 
 ```bash
 # Run task module tests
-uv run pytest tests/tasks/
+uv run python -m pytest tests/tasks/
 
 # Start Celery worker (recommended: auto-waits for dependencies)
 ./start_worker.sh

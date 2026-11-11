@@ -117,7 +117,7 @@ async def _async_log_chat_observability(
         risk_score, risk_factors = await service.compute_risk_score(
             confidence=confidence,
             safety_blocked=needs_transfer,
-            refund_amount=None,
+            loss_amount=None,
             is_complaint=is_complaint,
         )
         if risk_score >= 0.5:

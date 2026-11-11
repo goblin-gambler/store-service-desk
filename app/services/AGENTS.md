@@ -27,8 +27,7 @@ Business logic services that orchestrate domain operations. Services sit between
 | Experiment assigner | `@app/services/experiment_assigner.py` | User variant assignment for experiments |
 | Experiment management | `@app/services/experiment.py` | A/B experiment lifecycle management |
 | Online evaluation | `@app/services/online_eval.py` | Real-time evaluation from user feedback |
-| Order service | `@app/services/order_service.py` | Order management and query |
-| Refund service | `@app/services/refund_service.py` | Refund processing workflows |
+| Loss service | `@app/services/loss_service.py` | 报损单受理、分级审批（AUTO / STORE_MANAGER / REGIONAL）与状态流转 |
 | Review queue | `@app/services/review_queue.py` | Human review tickets with SLA tracking |
 | Status service | `@app/services/status_service.py` | Thread status polling |
 
@@ -36,8 +35,8 @@ Business logic services that orchestrate domain operations. Services sit between
 
 ```bash
 # Run service tests
-uv run pytest tests/test_order_service.py tests/test_refund_service.py tests/test_auth_service.py tests/test_status_service.py tests/test_admin_service.py
-uv run pytest tests/services/
+uv run python -m pytest tests/test_auth_service.py tests/test_status_service.py tests/test_admin_service.py
+uv run python -m pytest tests/services/
 ```
 
 ## Code Style
@@ -53,7 +52,7 @@ General Python rules are defined in the root `AGENTS.md`. Service-specific conve
 
 - Mock database sessions and external services in unit tests.
 - Test business rules and edge cases (invalid state transitions, permission checks).
-- Verify service orchestration (e.g., refund workflow steps).
+- Verify service orchestration (e.g., loss approval tier transitions).
 
 ## Conventions
 

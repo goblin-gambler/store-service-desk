@@ -45,7 +45,7 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).parent.parent
 PROMETHEUS_RULES_FILE = PROJECT_ROOT / "prometheus" / "alert_rules.yml"
 GRAFANA_ALERTING_DIR = PROJECT_ROOT / "grafana" / "provisioning" / "alerting"
-GRAFANA_RULES_FILE = GRAFANA_ALERTING_DIR / "rules" / "ecommerce-agent.yml"
+GRAFANA_RULES_FILE = GRAFANA_ALERTING_DIR / "rules" / "store-service-desk.yml"
 GRAFANA_CONTACT_POINTS_FILE = GRAFANA_ALERTING_DIR / "contact-points.yml"
 GRAFANA_NOTIFICATION_POLICIES_FILE = GRAFANA_ALERTING_DIR / "notification-policies.yml"
 
@@ -66,7 +66,7 @@ class AlertRuleConverter:
     }
     
     # UID prefix for all alerts
-    UID_PREFIX = "ecommerce-agent"
+    UID_PREFIX = "store-service-desk"
     
     def __init__(self, evaluation_interval: str = "1m"):
         """Initialize the converter.
@@ -83,7 +83,7 @@ class AlertRuleConverter:
             alert_name: Prometheus alert name (e.g., "HighErrorRate")
             
         Returns:
-            Grafana UID (e.g., "ecommerce-agent-high-error-rate")
+            Grafana UID (e.g., "store-service-desk-high-error-rate")
         """
         # Convert camelCase/PascalCase to kebab-case
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', alert_name)
@@ -207,12 +207,12 @@ class AlertRuleConverter:
             "annotations": {
                 "summary": annotations.get('summary', f'{grafana_title} alert'),
                 "description": annotations.get('description', f'{grafana_title} condition triggered.'),
-                "runbook_url": f"https://wiki.internal/observability/runbooks/{uid.replace('ecommerce-agent-', '')}"
+                "runbook_url": f"https://wiki.internal/observability/runbooks/{uid.replace('store-service-desk-', '')}"
             },
             "labels": {
                 "severity": labels.get('severity', 'warning'),
                 "team": "observability",
-                "service": "ecommerce-agent"
+                "service": "store-service-desk"
             }
         }
         
@@ -239,7 +239,7 @@ class AlertRuleConverter:
             "groups": [
                 {
                     "orgId": 1,
-                    "name": "ecommerce-agent-alerts",
+                    "name": "store-service-desk-alerts",
                     "folder": "Observability",
                     "interval": self.evaluation_interval,
                     "rules": grafana_rules
@@ -489,7 +489,7 @@ def add_deprecation_notice(prometheus_file: Path) -> None:
 # New alerting configuration location:
 #   - Contact Points: grafana/provisioning/alerting/contact-points.yml
 #   - Notification Policies: grafana/provisioning/alerting/notification-policies.yml
-#   - Alert Rules: grafana/provisioning/alerting/rules/ecommerce-agent.yml
+#   - Alert Rules: grafana/provisioning/alerting/rules/store-service-desk.yml
 #
 # Migration Date: Auto-generated
 # Target Removal: 1 sprint from migration date
@@ -602,7 +602,7 @@ def main():
     # Output results
     if args.dry_run:
         print("DRY RUN: Would write the following files:")
-        print(f"  - {args.output / 'rules' / 'ecommerce-agent.yml'}")
+        print(f"  - {args.output / 'rules' / 'store-service-desk.yml'}")
         print(f"  - {args.output / 'contact-points.yml'}")
         print(f"  - {args.output / 'notification-policies.yml'}")
         print()
@@ -617,7 +617,7 @@ def main():
         
         # Write files
         try:
-            rules_file = rules_dir / "ecommerce-agent.yml"
+            rules_file = rules_dir / "store-service-desk.yml"
             with open(rules_file, 'w') as f:
                 yaml.dump(grafana_rules, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
             print(f"  [OK] Wrote: {rules_file}")

@@ -7,7 +7,7 @@ from app.retrieval.sparse_embedder import SparseTextEmbedder
 @pytest.mark.asyncio
 async def test_sparse_embedder_produces_qdrant_sparse_vectors():
     embedder = SparseTextEmbedder()
-    texts = ["hello world", "电商退换货政策"]
+    texts = ["hello world", "连锁门店报损政策"]
     results = await embedder.aembed(texts)
 
     assert len(results) == 2

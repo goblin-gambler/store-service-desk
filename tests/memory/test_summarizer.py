@@ -74,7 +74,7 @@ async def test_run_persists_summary(summarizer, deterministic_llm, db_session):
             history=[{"role": "user", "content": "how long"}] * 21,
         )
     )
-    state["current_intent"] = "LOGISTICS"
+    state["current_intent"] = "SUPPLY"
     deterministic_llm.responses = [("Conversation messages:", "Shipping takes 3 days.")]
 
     record = await summarizer.run(state, db_session)
@@ -82,7 +82,7 @@ async def test_run_persists_summary(summarizer, deterministic_llm, db_session):
     assert record.user_id == user.id
     assert record.thread_id == thread_id
     assert record.summary_text == "Shipping takes 3 days."
-    assert record.resolved_intent == "LOGISTICS"
+    assert record.resolved_intent == "SUPPLY"
 
 
 @pytest.mark.asyncio
